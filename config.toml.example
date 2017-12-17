@@ -1,0 +1,26 @@
+[defaults]
+	repositories = {
+		main = { path = './repo' }
+	}
+	facts = {
+		haskell = true,
+	}
+
+[configurations.interactive]
+packages = ['tmux']
+facts = {
+	haskell = true,
+	perl = true,
+}
+
+[configurations.suricate]
+dependencies = ['interactive']
+packages = ['vim']
+facts = {
+	haskell = false,
+}
+collections = {
+	'env.sh' = {
+		destination = './env.sh',
+	},
+}
