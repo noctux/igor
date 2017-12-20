@@ -92,7 +92,10 @@ sub uniq_list_merge {
 	log_trace "Running uniq_list_merge on @{$breadcrumbs}";
 
 	# We want to do the removal of duplicates in a stable fashion...
-	my @uniqs = grep { my $v = $_; grep {$v ne $_} @$lista } @$listb;
+	my @uniqs;
+	for my $i (@$listb) {
+		push @uniqs, $i unless grep /^$i$/, @$lista;
+	}
 	push @$lista, @uniqs;
 
 	return $lista;
