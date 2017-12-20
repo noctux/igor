@@ -77,7 +77,7 @@ sub guess_identifier {
 	return $fqdn if defined $fqdn;
 
 	# Try hostname
-	return hostname; # Croaks on error
+	return Sys::Hostname::hostname; # Croaks on error
 }
 
 1;
