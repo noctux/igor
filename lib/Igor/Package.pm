@@ -61,19 +61,23 @@ sub from_file {
 
 	# Parse and read the config file
 	my $conf = Igor::Util::read_toml($filepath);
+	my $packagedir = path($filepath)->parent;
 
+	return from_hash($conf, $packagedir, $repository);
+}
 
+sub from_hash {
+	my ($conf, $basedir, $repository) = @_;
 	try {
 		# Validate the config
 		$conf = $packageschema->assert_coerce($conf);
 	} catch {
-		die "Validating package-configuration $filepath failed:\n$_";
+		die "Validating package-configuration at $basedir failed:\n$_";
 	};
 
-	my $packagedir = path($filepath)->parent;
-	return Igor::Package->new(basedir => $packagedir
+	return Igor::Package->new(basedir => $basedir
 		, repository => $repository
-		, id => $packagedir->basename
+		, id => $basedir->basename
 		, %{$conf});
 }
 
