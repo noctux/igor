@@ -1,15 +1,4 @@
-package Igor::Pipeline::Type {
-
-use constant {
-	TEXT => 0,
-	FILE => 1,
-};
-
-use constant {
-	CHANGED   => 0,
-	UNCHANGED => 1,
-};
-}
+use strict;
 
 package Igor::Sink {
 use strict;
@@ -24,6 +13,20 @@ sub emit     { die "Not implemented"; }
 sub diffstyle {
 	return { STYLE => "Unified" };
 }
+}
+
+
+package Igor::Pipeline::Type {
+
+use constant {
+	TEXT => 0,
+	FILE => 1,
+};
+
+use constant {
+	CHANGED   => 0,
+	UNCHANGED => 1,
+};
 }
 
 package Igor::Sink::File {
