@@ -229,8 +229,6 @@ use warnings;
 
 use Igor::Sink;
 
-use constant T => 'Igor::Pipeline::Type';
-
 use Class::Tiny qw(source sink), {
 	backends => [Igor::Pipeline::Type::FILE, Igor::Pipeline::Type::TEXT],
 	data => undef,

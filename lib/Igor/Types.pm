@@ -5,8 +5,6 @@ use strict;
 use Type::Library -base;
 use Type::Utils -all;
 
-use Igor::Operation;
-use Igor::Sink;
 use Path::Tiny;
 
 BEGIN { extends "Types::Standard" };

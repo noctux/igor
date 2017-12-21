@@ -41,6 +41,7 @@ sub usage {
 	         );
 }
 
+# Find out which task to run based on the --task variable or the system hostname
 sub find_task {
 	my ($opts, $cfgs) = @_;
 
