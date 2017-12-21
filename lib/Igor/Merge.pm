@@ -16,7 +16,7 @@ sub select_merger {
 
 	my $merger = Dive($self->mergers, @{$self->{breadcrumb}});
 
-	return unless ref($merger) eq 'CODE';
+	return undef unless ref($merger) eq 'CODE';
 	return $merger;
 }
 

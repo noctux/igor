@@ -150,7 +150,7 @@ sub prepare {
 	# Create a Safe compartment for evaluation, with the opcodes
 	# in :default being whitelisted:
 	#   https://metacpan.org/pod/Opcode#Predefined-Opcode-Tags
-	my $compartment = new Safe;
+	my $compartment = Safe->new();
 
 	my %templateconfig = (
 		TYPE => 'FILE',

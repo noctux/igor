@@ -176,8 +176,8 @@ sub expand_packages {
 		# Merge it with the global graph, prefixing all vertexes
 		$g->add_vertex($_) for map { "$reponame/$_" } @{[$rg->vertices]};
 		for my $edge (@{[$rg->edges]}) {
-			my ($a,$b) = @{$edge};
-			$g->add_edge("$reponame/$a", "$reponame/$b");
+			my ($x,$y) = @{$edge};
+			$g->add_edge("$reponame/$x", "$reponame/$y");
 		}
 	}
 
