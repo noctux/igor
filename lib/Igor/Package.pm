@@ -13,23 +13,20 @@ use Class::Tiny qw(basedir repository id), {
 use Data::Dumper;
 use Path::Tiny;
 use Try::Tiny;
-use Type::Coercion;
 use Type::Tiny;
-use Type::Utils qw(class_type);
 use Types::Standard qw(Any ArrayRef Dict HashRef Optional Str);
 
 use Igor::Operation;
-use Igor::Types;
 use Igor::Util;
 
 # Config file Schemata for TOML validation
 my $commandschema  = Str | ArrayRef[Str];
 my $fileschema     = Dict[
-	source     => $Igor::Types::PathTiny,
+	source     => Str,
 	collection => Str,
 ] | Dict[
-	source     => $Igor::Types::PathTiny,
-	dest       => $Igor::Types::PathTiny,
+	source     => Str,
+	dest       => Str,
 ];
 # Dependencies are files with a special preprocessingstep...
 my $templatedelimiter = Dict[
@@ -38,12 +35,12 @@ my $templatedelimiter = Dict[
 ];
 # TODO: Integrate filesystem permissions here
 my $templateschema = Dict[
-	source     => $Igor::Types::PathTiny,
-	dest       => $Igor::Types::PathTiny,
+	source     => Str,
+	collection => Str,
 	delimiters => Optional[$templatedelimiter],
 ] | Dict[
-	source     => $Igor::Types::PathTiny,
-	collection => Optional[Str],
+	source     => Str,
+	dest       => Str,
 	delimiters => Optional[$templatedelimiter],
 ];
 my $dependencyschema = Str;
@@ -55,6 +52,17 @@ my $packageschema = Dict[
 	precmds      => Optional[ArrayRef[$commandschema]],
 	postcmds     => Optional[ArrayRef[$commandschema]],
 ];
+
+sub BUILD {
+	my ($self, $args) = @_;
+
+	# Build Path::Tiny objects for all filepaths
+	for my $ent (@{$args->{templates}}, @{$args->{files}}) {
+		for my $key (qw(source dest)) {
+			$ent->{$key} = path($ent->{$key}) if exists $ent->{$key};
+		}
+	}
+}
 
 sub from_file {
 	my ($filepath, $repository) = @_;
@@ -70,7 +78,7 @@ sub from_hash {
 	my ($conf, $basedir, $repository) = @_;
 	try {
 		# Validate the config
-		$conf = $packageschema->assert_coerce($conf);
+		$packageschema->($conf);
 	} catch {
 		die "Validating package-configuration at $basedir failed:\n$_";
 	};

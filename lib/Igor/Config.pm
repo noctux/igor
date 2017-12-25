@@ -13,12 +13,11 @@ use Data::Diver;
 use Graph;
 use Igor::Merge;
 use Igor::Repository;
-use Igor::Types;
 use Igor::Util;
 use List::Util qw(reduce);
 use Log::ger;
+use Path::Tiny;
 use Try::Tiny;
-use Type::Coercion;
 use Types::Standard qw(Any ArrayRef Dict HashRef Optional Str);
 use Storable qw(dclone);
 
@@ -26,11 +25,11 @@ use Storable qw(dclone);
 my $packageschema = Str;
 # TODO: Integrate filesystem permissions here
 my $collectionschema = Dict[
-	destination => $Igor::Types::PathTiny,
+	destination => Str,
 	merger      => Optional[Str],
 ];
 my $repositoryschema = Dict[
-	path => $Igor::Types::PathTiny,
+	path => Str,
 ];
 my $configurationschema = Dict[
 	dependencies => Optional[ArrayRef[Str]],
@@ -46,6 +45,21 @@ my $configschema = Dict[
 
 sub BUILD {
 	my ($self, $args) = @_;
+
+	# Build Path::Tiny objects
+	for my $cfgkey (keys %{$args->{configurations}}) {
+		my $cfg = $args->{configurations}->{$cfgkey};
+		$cfg->{repositories} //= {};
+		for my $repokey (keys %{$cfg->{repositories}}) {
+			my $repo = $cfg->{repositories}->{$repokey};
+			$repo->{path} = path($repo->{path}) if exists $repo->{path};
+		}
+		$cfg->{collections} //= {};
+		for my $collkey (keys %{$cfg->{collections}}) {
+			my $coll = $cfg->{collections}->{$collkey};
+			$coll->{destination} = path($coll->{destination}) if exists $coll->{destination};
+		}
+	}
 }
 
 sub from_file {
@@ -57,7 +71,7 @@ sub from_file {
 
 	try {
 		# Validate the config
-		$conf = $configschema->assert_coerce($conf);
+		$configschema->($conf);
 	} catch {
 		die "Validating $filepath failed:\n$_";
 	};

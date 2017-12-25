@@ -30,10 +30,11 @@ requires 'Sys::Hostname';
 requires 'Term::ANSIColor';
 
 on 'test' => sub {
-	requires 'Test::More';
 	requires 'File::Temp';
-	requires 'Test::MockModule';        # https://metacpan.org/pod/Test::MockModule
 	requires 'Test::Exception';         # https://metacpan.org/pod/Test::Exception
+	requires 'Test::MockModule';        # https://metacpan.org/pod/Test::MockModule
+	requires 'Test::MockObject';        # https://metacpan.org/pod/Test::MockObject
+	requires 'Test::More';
 };
 
 # requires 'Package::Alias';              # https://metacpan.org/pod/Package::Alias
