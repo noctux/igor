@@ -159,7 +159,7 @@ sub prepare {
 		SAFE => $compartment,
 		BROKEN => sub { my %data = @_;
 			die "Error encountered for $srcfile:$data{lineno}: $data{error}";
-		}
+		},
 	);
 
 	# Optionally enable custom delimiters
@@ -189,7 +189,7 @@ sub apply {
 
 	# Write $content to outfile or collection...
 	unless (defined $self->content) {
-		log_warn "@{[ref($self)]}: prepare not called for template $self->sourcefile when applying";
+		log_warn "@{[ref($self)]}: prepare not called for template @{[$self->sourcefile]} when applying";
 		# Todo: params...
 		$self->prepare();
 	}
@@ -207,7 +207,7 @@ sub check {
 	my ($self, $ctx) = @_;
 
 	unless (defined $self->content) {
-		log_warn "@{[ref($self)]}: prepare not called for template $self->sourcefile when checking\n";
+		log_warn "@{[ref($self)]}: prepare not called for template @{[$self->sourcefile]} when checking\n";
 	}
 
 	return $self->sink->check(Igor::Pipeline::Type::TEXT, $self->content, $ctx);
@@ -217,7 +217,7 @@ sub diff {
 	my ($self, $ctx) = @_;
 
 	unless (defined $self->content) {
-		log_warn "@{[ref($self)]}: prepare not called for template $self->sourcefile when diffing\n";
+		log_warn "@{[ref($self)]}: prepare not called for template @{[$self->sourcefile]} when diffing\n";
 	}
 
 	return $self->sink->diff(Igor::Pipeline::Type::TEXT, $self->content, $ctx);
