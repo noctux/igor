@@ -17,6 +17,7 @@ sub diffstyle {
 
 
 package Igor::Pipeline::Type {
+use strict;
 
 use constant {
 	TEXT => 0,
