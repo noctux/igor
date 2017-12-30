@@ -96,7 +96,7 @@ sub gen_template_variable_declarations {
 			next;
 		}
 
-		my $type = reftype($value);
+		my $type = reftype($value) // '';
 		if ($type eq '') {
 			# If the value is a string or a number, then $key is set to
 			# that value in the template. For anything else, you must pass a
