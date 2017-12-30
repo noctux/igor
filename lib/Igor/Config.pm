@@ -27,6 +27,7 @@ my $packageschema = Str;
 my $collectionschema = Dict[
 	destination => Str,
 	merger      => Optional[Str],
+	perm        => Optional[Str],
 ];
 my $repositoryschema = Dict[
 	path => Str,
@@ -248,7 +249,10 @@ sub build_collection_context {
 				my @keys = sort { $a cmp $b } keys %$hash;
 				join('', map {$hash->{$_}} @keys);
 			},
-			sink => Igor::Sink::File->new(path => $collections->{$coll}->{destination}, id => $pkg),
+			sink => Igor::Sink::File->new( path => $collections->{$coll}->{destination}
+				                         , id => $pkg
+				                         , perm => $collections->{$coll}->{perm}
+									     ),
 			package => $pkg,
 		);
 	}

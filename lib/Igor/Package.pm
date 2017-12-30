@@ -27,6 +27,7 @@ my $fileschema     = Dict[
 ] | Dict[
 	source     => Str,
 	dest       => Str,
+	perm       => Str,
 ];
 # Dependencies are files with a special preprocessingstep...
 my $templatedelimiter = Dict[
@@ -42,6 +43,7 @@ my $templateschema = Dict[
 	source     => Str,
 	dest       => Str,
 	delimiters => Optional[$templatedelimiter],
+	perm       => Optional[Str],
 ];
 my $dependencyschema = Str;
 
@@ -104,13 +106,13 @@ sub qname {
 sub determine_sink {
 	 my ($file, $id) = @_;
 
-	 if (defined($file->{dest})) {
-	 	return Igor::Sink::File->new(path => $file->{dest}, id => $id);
-	 } elsif (defined($file->{collection})) {
-	 	return Igor::Sink::Collection->new(collection => $file->{collection}, id => $id);
-	 } else {
-	 	die "Failed to determine sink for file: " . Dumper($file);
-	 }
+	if (defined($file->{dest})) {
+		return Igor::Sink::File->new(path => $file->{dest}, id => $id, perm => $file->{perm});
+	} elsif (defined($file->{collection})) {
+		return Igor::Sink::Collection->new(collection => $file->{collection}, id => $id);
+	} else {
+		die "Failed to determine sink for file: " . Dumper($file);
+	}
 }
 
 sub to_transactions {
