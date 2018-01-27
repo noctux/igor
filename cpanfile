@@ -37,5 +37,10 @@ on 'test' => sub {
 	requires 'Test::More';
 };
 
+on 'build' => sub {
+	requires 'App::FatPacker';          # https://metacpan.org/pod/App::FatPacker
+	requires 'Perl::Strip';             # https://metacpan.org/pod/App::FatPacker
+}
+
 # requires 'Package::Alias';              # https://metacpan.org/pod/Package::Alias
 # requires 'IPC::Run';                    # https://metacpan.org/pod/IPC::Run
