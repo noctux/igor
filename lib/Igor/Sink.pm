@@ -77,15 +77,15 @@ sub check {
 sub emit {
 	my ($self, $type, $data) = @_;
 
-	return Igor::Pipeline::Type::UNCHANGED unless check();
+	return Igor::Pipeline::Type::UNCHANGED unless $self->check($type, $data);
+
+	# Create directory if the target directory does not exist
+	unless ($self->path->parent->is_dir) {
+		$self->path->parent->mkpath;
+	}
 
 	if ($type == Igor::Pipeline::Type::TEXT) {
-		log_trace "spew($self->path, " . Dumper($data) . ")";
-
-		# Create directory if the target directory does not exist
-		unless ($self->path->parent->is_dir) {
-			$self->path->parent->mkpath;
-		}
+		log_trace "spew(@{[$self->path]}, " . Dumper($data) . ")";
 
 		# write the data
 		$self->path->spew_utf8($data);
