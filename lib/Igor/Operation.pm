@@ -206,7 +206,7 @@ sub check {
 	my ($self, $ctx) = @_;
 
 	unless (defined $self->content) {
-		log_warn "@{[ref($self)]}: prepare not called for template @{[$self->sourcefile]} when checking\n";
+		log_warn "@{[ref($self)]}: prepare not called for template @{[$self->template]} when checking\n";
 	}
 
 	return $self->sink->check(Igor::Pipeline::Type::TEXT, $self->content, $ctx);
@@ -216,7 +216,7 @@ sub diff {
 	my ($self, $ctx) = @_;
 
 	unless (defined $self->content) {
-		log_warn "@{[ref($self)]}: prepare not called for template @{[$self->sourcefile]} when diffing\n";
+		log_warn "@{[ref($self)]}: prepare not called for template @{[$self->template]} when diffing\n";
 	}
 
 	return $self->sink->diff(Igor::Pipeline::Type::TEXT, $self->content, $ctx);
@@ -257,6 +257,7 @@ sub apply   {
 	my $backend = $self->backend;
 	my $data    = $self->data;
 
+	log_trace "Filetransfer: @{[$self->sink]} with $data";
 	# Symlink the two files...
 	return $self->sink->emit($backend, $data, $ctx);
 }
@@ -374,13 +375,16 @@ sub apply {
 
 	# Execute
 	my $retval;
+	my $strcmd;
 	if (ref($self->command) eq 'ARRAY') {
-		$retval = system(@$self->command);
+		$retval = system(@{$self->command});
+		$strcmd = join(' ', @{$self->command});
 	} else {
 		$retval = system($self->command);
+		$strcmd = $self->command;
 	}
 
- 	$retval == 0 or die "system $self->command failed with exitcode: $?";
+	$retval == 0 or die "system($strcmd) in @{[$self->basedir]} failed with exitcode: $?";
 	1;
 }
 
