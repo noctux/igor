@@ -293,10 +293,7 @@ sub prepare {
 	my ($self, $ctx) = @_;
 
 	my $collection = $ctx->{collections}->{$self->collection};
-	die "Unknown collection '$self->collection'" unless defined $collection;
-
-	my $data = $self->merger->($collection, $self->collection);
-	$self->data($data);
+	die "Unknown collection '@{[$self->collection]}'" unless defined $collection;
 
 	return 1;
 }
@@ -304,12 +301,18 @@ sub prepare {
 sub check   {
 	my ($self, $ctx) = @_;
 
+	my $collection = $ctx->{collections}->{$self->collection};
+	my $data = $self->merger->($collection, $self->collection);
+	log_trace "Merged collection '@{[$self->collection]}': $data";
+	$self->data($data);
+
 	return $self->sink->check(Igor::Pipeline::Type::TEXT, $self->data, $ctx);
 }
 
 sub apply   {
 	my ($self, $ctx) = @_;
 
+	log_trace "Emitting collection '@{[$self->sink->path]}': @{[$self->data]}";
 	return $self->sink->emit(Igor::Pipeline::Type::TEXT, $self->data, $ctx);
 }
 
