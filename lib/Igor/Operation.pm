@@ -189,9 +189,8 @@ sub apply {
 
 	# Write $content to outfile or collection...
 	unless (defined $self->content) {
-		log_warn "@{[ref($self)]}: prepare not called for template @{[$self->sourcefile]} when applying";
-		# Todo: params...
-		$self->prepare();
+		log_warn "@{[ref($self)]}: prepare not called for template @{[$self->template]} when applying";
+		$self->prepare($ctx);
 	}
 
 	return $self->sink->emit(Igor::Pipeline::Type::TEXT, $self->content, $ctx);
