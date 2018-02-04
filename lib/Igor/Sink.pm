@@ -94,8 +94,10 @@ sub emit {
 			$self->path->chmod($self->perm);
 		}
 	} elsif ($type == Igor::Pipeline::Type::FILE) {
+		my $dest = $self->path->absolute;
+
 		# symlink
-		symlink $data,$self->path or die "Failed to symlink: $self->path -> $data";
+		symlink $data,$dest or die "Failed to symlink: $dest -> $data: $!";
 	} else {
 		die "Unsupported type \"$type\" at \"" . __PACKAGE__ . "\" when emitting file $self->path";
 	}

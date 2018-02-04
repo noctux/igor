@@ -27,7 +27,7 @@ sub prepare_file_for_backend {
 
 	if ($backend == Igor::Pipeline::Type::FILE) {
 		# File backend: Simply pass the file
-		return $file;
+		return $file->absolute;
 	} elsif ($backend == Igor::Pipeline::Type::TEXT) {
 		# Text backend: Pass by content
 		return $file->slurp_utf8;

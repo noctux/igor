@@ -49,12 +49,20 @@ sub BUILD {
 	my ($self, $args) = @_;
 
 	# Build Path::Tiny objects
-	for my $cfgkey (keys %{$args->{configurations}}) {
-		my $cfg = $args->{configurations}->{$cfgkey};
+	for my $cfg (values %{$args->{configurations}}, $args->{defaults}) {
+		#my $cfg = $args->{configurations}->{$cfgkey};
+		$cfg //= {};
 		$cfg->{repositories} //= {};
 		for my $repokey (keys %{$cfg->{repositories}}) {
 			my $repo = $cfg->{repositories}->{$repokey};
-			$repo->{path} = path($repo->{path}) if exists $repo->{path};
+			if (exists $repo->{path}) {
+				my $path = path($repo->{path});
+				if ($path->is_relative) {
+					# Resolve relative paths in relation to the config file
+					$path = path("@{[$args->{file}->parent]}/$path");
+				}
+				$repo->{path} = $path;
+			}
 		}
 		$cfg->{collections} //= {};
 		for my $collkey (keys %{$cfg->{collections}}) {
@@ -70,7 +78,6 @@ sub from_file {
 	# Parse and read the config file
 	my $conf = Igor::Util::read_toml($filepath);
 
-
 	try {
 		# Validate the config
 		$configschema->($conf);
@@ -78,7 +85,7 @@ sub from_file {
 		die "Validating $filepath failed:\n$_";
 	};
 
-	return Igor::Config->new(file => $filepath, %{$conf});
+	return Igor::Config->new(file => path($filepath), %{$conf});
 }
 
 sub expand_dependencies {
