@@ -38,6 +38,7 @@ my $configurationschema = Dict[
 	repositories => Optional[HashRef[$repositoryschema]],
 	facts        => Optional[Any],
 	collections  => Optional[HashRef[$collectionschema]],
+	pattern      => Optional[Str],
 ];
 my $configschema = Dict[
 	defaults       => Optional[$configurationschema],

@@ -14,6 +14,8 @@ use Term::ANSIColor;
 use Try::Tiny;
 use Pod::Usage;
 
+use sort 'stable';
+
 # Configure Logging
 use Log::ger::Output Composite => (
 	outputs => {
@@ -49,7 +51,10 @@ sub find_task {
 	return $task if defined $task;
 
 	my $identifier = Igor::Util::guess_identifier;
-	my @tasks = grep { $identifier =~ /$_/ } sort keys %$cfgs;
+	my @tasks = grep {
+		my $re = $cfgs->{$_}->{pattern} // $_;
+		$identifier =~ /$re/
+	} sort keys %$cfgs;
 
 	die "Automatic task selection using identifier '$identifier' not unique: " . @tasks if @tasks > 1;
 	die "Task selection using identifier '$identifier' machted no configurations" unless @tasks;
