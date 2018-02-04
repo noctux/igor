@@ -164,7 +164,7 @@ sub prepare {
 
 	# Optionally enable custom delimiters
 	if (defined($self->delimiters)) {
-		$templateconfig{DELIMITERS} = $self->delimiters;
+		$templateconfig{DELIMITERS} = [$self->delimiters->{open}, $self->delimiters->{close}];
 	}
 
 	# Build the actual template
