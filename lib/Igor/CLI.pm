@@ -225,7 +225,7 @@ sub main {
 			$run->(sub { $_[0]->log($ctx) }, \@transactions);
 		} else {
 			log_info colored(['bold'], "Running stage \"apply\":");
-			# $run->(sub { $_[0]->apply($ctx) }, \@transactions);
+			$run->(sub { $_[0]->apply($ctx) }, \@transactions);
 		}
 
 	} elsif ("gc"    eq $subcommand) {
