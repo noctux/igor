@@ -341,14 +341,22 @@ use parent 'Igor::Operation';
 use Cwd;
 use Log::ger;
 use File::pushd;
+use File::Which;
 
 sub prepare { 1; } # No preparation needed
 
 sub check   {
 	my ($self) = @_;
 
-	# TODO: Maybe execute a "which" here...
+	# If we execute a proper command (vs relying on sh),
+	# we can actually check whether the binary exists...
+	if (ref($self->command) eq 'ARRAY') {
+		my $binary = File::Which::which($self->command->[0]);
+		log_debug "Resolved @{[$self->command->[0]]} to @{[$binary // 'undef']}";
+		return defined($binary);
+	}
 
+	log_trace "Cannot check shell expression @{[$self->command]}";
 	1;
 }
 

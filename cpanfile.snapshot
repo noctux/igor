@@ -235,6 +235,13 @@ DISTRIBUTIONS
       strict 0
       vars 0
       warnings 0
+  File-Which-1.22
+    pathname: P/PL/PLICEASE/File-Which-1.22.tar.gz
+    provides:
+      File::Which 1.22
+    requirements:
+      ExtUtils::MakeMaker 0
+      perl 5.006
   File-pushd-1.014
     pathname: D/DA/DAGOLDEN/File-pushd-1.014.tar.gz
     provides:
