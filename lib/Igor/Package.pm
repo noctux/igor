@@ -27,7 +27,7 @@ my $fileschema     = Dict[
 ] | Dict[
 	source     => Str,
 	dest       => Str,
-	perm       => Str,
+	perm       => Optional[Str],
 ];
 # Dependencies are files with a special preprocessingstep...
 my $templatedelimiter = Dict[
