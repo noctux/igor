@@ -255,6 +255,7 @@ sub build_collection_context {
 				                         , perm => $collections->{$coll}->{perm}
 									     ),
 			package => $pkg,
+			order   => 50,
 		);
 	}
 

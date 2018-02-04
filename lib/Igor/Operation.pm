@@ -2,7 +2,7 @@ package Igor::Operation;
 use strict;
 use warnings;
 
-use Class::Tiny qw(package);
+use Class::Tiny qw(package order);
 use Data::Dumper;
 use Igor::Sink;
 

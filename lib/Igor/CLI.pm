@@ -183,7 +183,9 @@ sub main {
 	log_info colored(['bold'], "Running subcommand $subcommand");
 
 	if      ("apply" eq $subcommand) {
+		# Get the transactions required for our packages
 		my @transactions = map { $_->to_transactions } @packages;
+
 		# We now make three passes through the transactions:
 		#   prepare (this will run sideeffect preparations like expanding templates, etc.)
 		#   check   (this checks for file-conflicts etc as far as possible)
@@ -197,6 +199,10 @@ sub main {
 		push @transactions, @$colltrans;
 		$ctx->{$_} = $effective_configuration->{$_} for qw(facts packages);
 
+		# Make sure they are ordered correctly:
+		@transactions = sort {$a->order cmp $b->order} @transactions;
+
+		# Wrapper for safely executing actions
 		my $run = sub {
 			my ($code, $transactions) = @_;
 

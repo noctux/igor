@@ -124,26 +124,31 @@ sub to_transactions {
 		push @transactions, Igor::Operation::RunCommand->new(
 			package => $self,
 			command => $cmd,
-			basedir => $self->basedir
+			basedir => $self->basedir,
+			order   => 10,
 		);
 	}
 
 	# Symlink and create files
 	for my $file (@{$self->files}) {
+		my $source = path("@{[$self->basedir]}/$file->{source}");
+		$file->{perm} //= $source->stat->mode;
 		push @transactions, Igor::Operation::FileTransfer->new(
 			package => $self,
-			source => path("@{[$self->basedir]}/$file->{source}"),
-			sink => determine_sink($file, $self->qname)
+			source  => $source,
+			sink    => determine_sink($file, $self->qname),
+			order   => 20,
 		);
 	}
 
 	# Run the templates
 	for my $tmpl (@{$self->templates}) {
 		push @transactions, Igor::Operation::Template->new(
-			package => $self,
-			template => path("@{[$self->basedir]}/$tmpl->{source}"),
-			sink => determine_sink($tmpl, $self->qname),
+			package    => $self,
+			template   => path("@{[$self->basedir]}/$tmpl->{source}"),
+			sink       => determine_sink($tmpl, $self->qname),
 			delimiters => $tmpl->{delimiters},
+			order      => 30,
 		);
 	}
 
@@ -152,7 +157,8 @@ sub to_transactions {
 		push @transactions, Igor::Operation::RunCommand->new(
 			package => $self,
 			command => $cmd,
-			basedir => $self->basedir
+			basedir => $self->basedir,
+			order   => 90,
 		);
 	}
 
