@@ -255,7 +255,7 @@ sub build_collection_context {
 			collection => $coll,
 			merger => sub { my $hash = shift;
 				my @keys = sort { $a cmp $b } keys %$hash;
-				join('', map {$hash->{$_}} @keys);
+				join('', map {$hash->{$_}} @keys)
 			},
 			sink => Igor::Sink::File->new( path => $collections->{$coll}->{destination}
 				                         , id => $pkg
