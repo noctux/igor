@@ -14,7 +14,7 @@ __END__
 
 =head1 NAME
 
-igor - Because nothing makes you feel so as home as a good igor
+igor - Because nothing makes you feel so as home like a good igor
 
 I<A humble attempt at configuration management>
 

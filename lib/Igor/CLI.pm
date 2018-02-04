@@ -180,7 +180,7 @@ sub main {
 
 	# Now dispatch the subcommands
 	my ($subcommand) = @{$opts->{subcommand}};
-	log_info colored(['bold'], "Running subcommand $subcommand");
+	log_info colored(['bold'], "Running subcommand @{[colored(['bold blue'], $subcommand)]}");
 
 	if      ("apply" eq $subcommand) {
 		# Get the transactions required for our packages
@@ -216,15 +216,15 @@ sub main {
 				}
 			}
 		};
-		log_debug "Running stage \"prepare\":";
+		log_info colored(['bold'], "Running stage \"prepare\":");
 		$run->(sub { $_[0]->prepare($ctx) }, \@transactions);
-		log_debug "Running stage \"check\":";
+		log_info colored(['bold'], "Running stage \"check\":");
 		$run->(sub { $_[0]->check($ctx) }, \@transactions);
 		if ($opts->{dryrun}) {
-			log_debug "Running stage \"log\":";
+			log_info colored(['bold'], "Running stage \"log\":");
 			$run->(sub { $_[0]->log($ctx) }, \@transactions);
 		} else {
-			log_debug "Running stage \"apply\":";
+			log_info colored(['bold'], "Running stage \"apply\":");
 			# $run->(sub { $_[0]->apply($ctx) }, \@transactions);
 		}
 
