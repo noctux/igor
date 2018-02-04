@@ -167,17 +167,26 @@ sub requires { \@REQUIRES }
 sub check {
 	my ($self, $type, $data, $ctx) = @_;
 
+	# Only build the context once
 	return 1 if $self->checked;
 
-	# Sanity-check:
-	die "Unsupported type \"$type\" at \"" . __PACKAGE__ . "\" when emitting to collection $self->collection for $self->id" if Igor::Pipeline::Type::TEXT != $type;
+	# Sanity-check: Input type
+	die   "Unsupported type \"$type\" at \"@{[__PACKAGE__]}\" "
+	    . "when emitting to collection @{[$self->collection]} for @{[$self->id]}" if Igor::Pipeline::Type::TEXT != $type;
 
+	# Ensure that collection exists
 	die "Unknown collection '@{[$self->collection]}' for package '@{[$self->id]}'"
 		unless exists $ctx->{collections}->{$self->collection};
 	my $collection = $ctx->{collections}->{$self->collection};
 
-	die "Duplicate entry for $self->id in collection $self->collection" if (exists $collection->{$self->id});
+	# Ensure that a package only writes to the context once
+	die "Duplicate entry for @{[$self->id]} in collection @{[$self->collection]}" if (exists $collection->{$self->id});
+
+	# Write to the context
 	$collection->{$self->id} = $data;
+
+	# Check has run
+	$self->checked(1);
 
 	return 1;
 }
