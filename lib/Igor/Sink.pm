@@ -68,7 +68,7 @@ sub check {
 			$changeneeded = 1;
 		}
 	} else {
-		die "Unsupported type \"$type\" at \"" . __PACKAGE__ . "\" when checking file $self->path";
+		die "Unsupported type \"$type\" at \"@{[ __PACKAGE__ ]}\" when checking file @{[$self->path]}";
 	}
 
 	return $changeneeded;
@@ -103,7 +103,7 @@ sub emit {
 		# symlink
 		symlink $data,$dest or die "Failed to symlink: $dest -> $data: $!";
 	} else {
-		die "Unsupported type \"$type\" at \"" . __PACKAGE__ . "\" when emitting file $self->path";
+		die "Unsupported type \"$type\" at \"" . __PACKAGE__ . "\" when emitting file @{[$self->path]}";
 	}
 
 	return Igor::Pipeline::Type::CHANGED;
@@ -146,7 +146,7 @@ package Igor::Sink::Collection {
 use strict;
 use warnings;
 
-# Collection sinks are a bit of a hack They simply export to a context, which
+# Collection sinks are a bit of a hack: They simply export to a context, which
 # will later be used to fuse the collection. Therefore check, emit and diff
 # are subs, only crating a suitable ctx for the actual ops.
 
