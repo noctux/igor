@@ -1,3 +1,4 @@
+requires 'common::sense';               # https://metacpan.org/pod/common::sense
 requires 'Class::Tiny';                 # https://metacpan.org/pod/Class::Tiny
 requires 'Const::Fast';                 # https://metacpan.org/pod/Const::Fast
 requires 'Data::Diver';                 # https://metacpan.org/pod/Data::Diver

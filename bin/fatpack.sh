@@ -21,13 +21,16 @@ PATH="$(pwd)/local/bin:$PATH"
 export PATH
 
 # Preparations: Tracing
-fatpack trace ./igor.pl
+fatpack trace --use=common::sense ./igor.pl
 fatpack packlists-for $(cat fatpacker.trace) > packlists
 fatpack tree $(cat packlists)
 
 # Run perlstrip
-find ./fatlib -type f -exec perlstrip {} \;
+find ./fatlib -type f -exec perlstrip --size {} \;
 
 # Pack the script
 fatpack file ./igor.pl > ./igor.packed.pl
+# Bugfix: common::sense is in ARCHLIB
+sed -i 's!x86_64-linux-thread-multi/!!g' ./igor.packed.pl
+
 chmod u+x ./igor.packed.pl
