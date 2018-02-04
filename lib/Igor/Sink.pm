@@ -97,6 +97,9 @@ sub emit {
 	} elsif ($type == Igor::Pipeline::Type::FILE) {
 		my $dest = $self->path->absolute;
 
+		# Remove the link if it exists
+		unlink $dest if -l $dest;
+
 		# symlink
 		symlink $data,$dest or die "Failed to symlink: $dest -> $data: $!";
 	} else {
