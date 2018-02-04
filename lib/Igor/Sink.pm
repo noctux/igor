@@ -44,6 +44,7 @@ use Data::Dumper;
 use Log::ger;
 use Text::Diff ();
 use Try::Tiny;
+use Fcntl ':mode';
 
 const my @REQUIRES => (Igor::Pipeline::Type::FILE, Igor::Pipeline::Type::TEXT);
 
@@ -56,13 +57,13 @@ sub check {
 
 	if ($type == Igor::Pipeline::Type::TEXT) {
 		try {
-			$changeneeded = $self->path->slurp_utf8() eq $data;
+			$changeneeded = $self->path->slurp_utf8() ne $data;
 		} catch {
 			$changeneeded = 1;
 		}
 	} elsif ($type == Igor::Pipeline::Type::FILE) {
 		try {
-			$changeneeded = not (S_IFLNK($self->path->lstat->mode) && ($self->path->realpath eq $data->realpath));
+			$changeneeded = not (S_ISLNK($self->path->lstat->mode) && ($self->path->realpath eq $data->realpath));
 		} catch {
 			$changeneeded = 1;
 		}
