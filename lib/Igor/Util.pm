@@ -1,4 +1,7 @@
 package Igor::Util;
+use Exporter 'import';
+@EXPORT_OK = qw(colored);
+
 use strict;
 use warnings;
 
@@ -11,6 +14,7 @@ use Log::ger;
 use Path::Tiny;
 use TOML;
 use TOML::Parser;
+use Term::ANSIColor ();
 
 sub read_toml {
 	my ($filepath) = @_;
@@ -78,6 +82,23 @@ sub guess_identifier {
 
 	# Try hostname
 	return Sys::Hostname::hostname; # Croaks on error
+}
+
+sub colored {
+	if (-t STDOUT) { # outputting to terminal
+		return Term::ANSIColor::colored(@_);
+	} else {
+		# Colored has two calling modes:
+		#   colored(STRING, ATTR[, ATTR ...])
+		#   colored(ATTR-REF, STRING[, STRING...])
+
+		unless (ref($_[0])) { # Called as option one
+			return $_;
+		} else { # Called as option two
+			shift;
+			return @_;
+		}
+	}
 }
 
 1;

@@ -9,8 +9,7 @@ use Getopt::Long::Subcommand;
 use Igor::Config;
 use Igor::Repository;
 use Igor::Package;
-use Igor::Util;
-use Term::ANSIColor;
+use Igor::Util qw(colored);
 use Try::Tiny;
 use Pod::Usage;
 
@@ -27,7 +26,8 @@ use Log::ger::Output Composite => (
 			},
 			{
 				level => 'warn',
-				conf  => {stderr => 1},
+				conf  => { stderr => 1
+				         , use_color => -t STDERR},
 			},
 		],
 	}
