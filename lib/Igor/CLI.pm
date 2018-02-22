@@ -39,7 +39,7 @@ use Log::ger::Util;
 sub usage {
 	pod2usage( -verbose  => 99
 	         , -exitval  => 'NOEXIT'
-			 , -sections => 'SYNOPSIS'
+	         , -sections => 'SYNOPSIS'
 	         );
 }
 
@@ -90,6 +90,10 @@ sub parse_commandline {
 				summary => 'Verbosity level',
 				handler => \$opts{verbositylevel}
 			},
+			'task=s' => {
+				summary => 'Task to execute',
+				handler => \$opts{task}
+			},
 		},
 
 		subcommands => {
@@ -99,10 +103,6 @@ sub parse_commandline {
 					'dry-run' => {
 						summary => 'Only simulate the operations',
 						handler => \$opts{dryrun}
-					},
-					'task=s' => {
-						summary => 'Task to execute',
-						handler => \$opts{task}
 					},
 				}
 			},
@@ -182,10 +182,33 @@ sub main {
 	my ($subcommand) = @{$opts->{subcommand}};
 	log_info colored(['bold'], "Running subcommand @{[colored(['bold blue'], $subcommand)]}");
 
-	if      ("apply" eq $subcommand) {
-		# Get the transactions required for our packages
-		my @transactions = map { $_->to_transactions } @packages;
+	# Get the transactions required for our packages
+	my @transactions = map { $_->to_transactions } @packages;
 
+	# Build the context and create the "EmitCollection" transactions for the collections
+	my ($ctx, $colltrans) = $config->build_collection_context($effective_configuration->{collections});
+	push @transactions, @$colltrans;
+	$ctx->{$_} = $effective_configuration->{$_} for qw(facts packages);
+
+	# Make sure they are ordered correctly:
+	@transactions = sort {$a->order cmp $b->order} @transactions;
+
+	# Wrapper for safely executing actions
+	my $run = sub {
+		my ($code, $transactions) = @_;
+
+		for my $trans (@$transactions) {
+			try {
+				$code->($trans);
+			} catch {
+				log_error("Error occured when processing package @{[$trans->package->qname]}:");
+				log_error($_);
+				die "Got a terminal failure for @{[$trans->package->qname]}";
+			}
+		}
+	};
+
+	if      ("apply" eq $subcommand) {
 		# We now make three passes through the transactions:
 		#   prepare (this will run sideeffect preparations like expanding templates, etc.)
 		#   check   (this checks for file-conflicts etc as far as possible)
@@ -194,28 +217,6 @@ sub main {
 		# or
 		#   log     (only print what would be done)
 
-		# Build the context and create the "EmitCollection" transactions for the collections
-		my ($ctx, $colltrans) = $config->build_collection_context($effective_configuration->{collections});
-		push @transactions, @$colltrans;
-		$ctx->{$_} = $effective_configuration->{$_} for qw(facts packages);
-
-		# Make sure they are ordered correctly:
-		@transactions = sort {$a->order cmp $b->order} @transactions;
-
-		# Wrapper for safely executing actions
-		my $run = sub {
-			my ($code, $transactions) = @_;
-
-			for my $trans (@$transactions) {
-				try {
-					$code->($trans);
-				} catch {
-					log_error("Error occured when processing package @{[$trans->package->qname]}:");
-					log_error($_);
-					die "Got a terminal failure for @{[$trans->package->qname]}";
-				}
-			}
-		};
 		log_info colored(['bold'], "Running stage \"prepare\":");
 		$run->(sub { $_[0]->prepare($ctx) }, \@transactions);
 		log_info colored(['bold'], "Running stage \"check\":");
@@ -227,10 +228,15 @@ sub main {
 			log_info colored(['bold'], "Running stage \"apply\":");
 			$run->(sub { $_[0]->apply($ctx) }, \@transactions);
 		}
-
 	} elsif ("gc"    eq $subcommand) {
 
 	} elsif ("diff"  eq $subcommand) {
+		log_info colored(['bold'], "Running stage \"prepare\":");
+		$run->(sub { $_[0]->prepare($ctx) }, \@transactions);
+		log_info colored(['bold'], "Running stage \"check\":");
+		$run->(sub { $_[0]->check($ctx) }, \@transactions);
+		log_info colored(['bold'], "Running stage \"diff\":");
+		$run->(sub { print $_[0]->diff($ctx) }, \@transactions);
 
 	} else {
 		die "Internal: Unknown subcommand $subcommand";

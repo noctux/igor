@@ -9,10 +9,8 @@ use Class::Tiny;
 sub requires { die "Not implemented"; }
 sub check    { die "Not implemented"; }
 sub emit     { die "Not implemented"; }
+sub diff     { die "Not implemented"; }
 
-sub diffstyle {
-	return { STYLE => "Unified" };
-}
 }
 
 
@@ -42,7 +40,7 @@ use Class::Tiny qw(path), {
 use Const::Fast;
 use Data::Dumper;
 use Log::ger;
-use Text::Diff ();
+use Igor::Diff ();
 use Try::Tiny;
 use Fcntl ':mode';
 
@@ -110,18 +108,18 @@ sub emit {
 }
 
 sub diff {
-	my ($self, $type, $data) = @_;
+	my ($self, $type, $data, undef, %opts) = @_;
 
 	my $diff;
 	if ($type == Igor::Pipeline::Type::TEXT) {
 		try {
-			$diff = Text::Diff::diff \$data, $self->path->stringify, $self->diffstyle;
+			$diff = Igor::Diff::diff \$data, $self->path->stringify, \%opts;
 		} catch {
 			$diff = $_;
 		}
 	} elsif ($type == Igor::Pipeline::Type::FILE) {
 		try {
-			$diff = Text::Diff::diff $data, $self->path->stringify, $self->diffstyle;
+			$diff = Igor::Diff::diff $data->stringify, $self->path->stringify, \%opts;
 		} catch {
 			$diff = $_;
 		}

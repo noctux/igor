@@ -56,6 +56,7 @@ use Log::ger;
 use Safe;
 use Scalar::Util qw(reftype);
 use Text::Template;
+use Time::localtime;
 
 =begin
 Generate variable declarations for C<Text::Template>'s C<HASH> parameter when used in
@@ -219,7 +220,9 @@ sub diff {
 		log_warn "@{[ref($self)]}: prepare not called for template @{[$self->template]} when diffing\n";
 	}
 
-	return $self->sink->diff(Igor::Pipeline::Type::TEXT, $self->content, $ctx);
+	return $self->sink->diff( Igor::Pipeline::Type::TEXT, $self->content, $ctx
+	                        , FILENAME_A => $self->template
+							, MTIME_A => $self->template->stat->mtime());
 }
 
 package Igor::Operation::FileTransfer;
@@ -236,6 +239,7 @@ use Class::Tiny qw(source sink), {
 use parent 'Igor::Operation';
 
 use Log::ger;
+use Time::localtime;
 
 sub prepare {
 	my ($self) = @_;
@@ -263,12 +267,14 @@ sub apply   {
 }
 
 sub diff {
-	my ($self) = @_;
+	my ($self, $ctx) = @_;
 
 	my $backend = $self->backend;
 	my $data    = $self->data;
 
-	return $self->diff($backend, $data);
+	return $self->sink->diff( $backend, $data, $ctx
+	                        , FILENAME_A => $self->source
+	                        , MTIME_A => $self->source->stat->mtime);
 }
 
 sub log {
@@ -318,9 +324,11 @@ sub apply   {
 }
 
 sub diff {
-	my ($self) = @_;
+	my ($self, $ctx) = @_;
 
-	return $self->diff(Igor::Pipeline::Type::TEXT, $self->data);
+	return $self->sink->diff( Igor::Pipeline::Type::TEXT, $self->data, $ctx
+	                        , FILENAME_A => "Collection " . $self->collection
+	                        , MTIME_A    => time());
 }
 
 sub log {
@@ -402,7 +410,7 @@ sub log {
 sub diff {
 	my ($self) = @_;
 
-	return 1;
+	return '';
 }
 
 1;
