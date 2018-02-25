@@ -185,30 +185,7 @@ sub main {
 	# Get the transactions required for our packages
 	my @transactions = map { $_->to_transactions } @packages;
 
-	# Build the context and create the "EmitCollection" transactions for the collections
-	my ($ctx, $colltrans) = $config->build_collection_context($effective_configuration->{collections});
-	push @transactions, @$colltrans;
-	$ctx->{$_} = $effective_configuration->{$_} for qw(facts packages);
-
-	# Make sure they are ordered correctly:
-	@transactions = sort {$a->order cmp $b->order} @transactions;
-
-	# Wrapper for safely executing actions
-	my $run = sub {
-		my ($code, $transactions) = @_;
-
-		for my $trans (@$transactions) {
-			try {
-				$code->($trans);
-			} catch {
-				log_error("Error occured when processing package @{[$trans->package->qname]}:");
-				log_error($_);
-				die "Got a terminal failure for @{[$trans->package->qname]}";
-			}
-		}
-	};
-
-	if      ("apply" eq $subcommand) {
+	if      (("apply" eq $subcommand) || ("diff" eq $subcommand)) {
 		# We now make three passes through the transactions:
 		#   prepare (this will run sideeffect preparations like expanding templates, etc.)
 		#   check   (this checks for file-conflicts etc as far as possible)
@@ -216,28 +193,70 @@ sub main {
 		#   apply   (acutally perform the operations)
 		# or
 		#   log     (only print what would be done)
+		# or
+		#   diff    (show differences between repository- and filesystem-state
+
+		# Build the context and create the "EmitCollection" transactions for the collections
+		my ($ctx, $colltrans) = $config->build_collection_context($effective_configuration->{collections});
+		push @transactions, @$colltrans;
+		$ctx->{$_} = $effective_configuration->{$_} for qw(facts packages);
+
+		# Make sure they are ordered correctly:
+		@transactions = sort {$a->order cmp $b->order} @transactions;
+
+		# Wrapper for safely executing actions
+		my $run = sub {
+			my ($code, $transactions) = @_;
+
+			for my $trans (@$transactions) {
+				try {
+					$code->($trans);
+				} catch {
+					log_error("Error occured when processing package @{[$trans->package->qname]}:");
+					log_error($_);
+					die "Got a terminal failure for @{[$trans->package->qname]}";
+				}
+			}
+		};
 
 		log_info colored(['bold'], "Running stage \"prepare\":");
 		$run->(sub { $_[0]->prepare($ctx) }, \@transactions);
 		log_info colored(['bold'], "Running stage \"check\":");
 		$run->(sub { $_[0]->check($ctx) }, \@transactions);
-		if ($opts->{dryrun}) {
-			log_info colored(['bold'], "Running stage \"log\":");
-			$run->(sub { $_[0]->log($ctx) }, \@transactions);
+
+		if    ("apply" eq $subcommand) {
+			if ($opts->{dryrun}) {
+				log_info colored(['bold'], "Running stage \"log\":");
+				$run->(sub { $_[0]->log($ctx) }, \@transactions);
+			} else {
+				log_info colored(['bold'], "Running stage \"apply\":");
+				$run->(sub { $_[0]->apply($ctx) }, \@transactions);
+			}
+		} elsif ("diff"  eq $subcommand) {
+			log_info colored(['bold'], "Running stage \"diff\":");
+			$run->(sub { print $_[0]->diff($ctx) }, \@transactions);
 		} else {
-			log_info colored(['bold'], "Running stage \"apply\":");
-			$run->(sub { $_[0]->apply($ctx) }, \@transactions);
+			die "Internal: wrong subcommand $subcommand";
 		}
 	} elsif ("gc"    eq $subcommand) {
+		# Show artifacts that exist in the filesystem which stem from
+		# absent packages
+		my @blacklist = map {
+			$_->gc()
+		} $config->complement_packages(\@packages);
 
-	} elsif ("diff"  eq $subcommand) {
-		log_info colored(['bold'], "Running stage \"prepare\":");
-		$run->(sub { $_[0]->prepare($ctx) }, \@transactions);
-		log_info colored(['bold'], "Running stage \"check\":");
-		$run->(sub { $_[0]->check($ctx) }, \@transactions);
-		log_info colored(['bold'], "Running stage \"diff\":");
-		$run->(sub { print $_[0]->diff($ctx) }, \@transactions);
+		# Remove duplicates
+		my %uniq;
+		$uniq{$_} = 1 for @blacklist;
 
+		# Rewrite urles to use ~ for $HOME if possible
+		if (defined($ENV{HOME})) {
+			@blacklist = map { $_ =~ s/^\Q$ENV{HOME}\E/~/; $_ } keys %uniq;
+		} else {
+			@blacklist = keys %uniq;
+		}
+
+		print $_ . "\n" for @blacklist;
 	} else {
 		die "Internal: Unknown subcommand $subcommand";
 	}

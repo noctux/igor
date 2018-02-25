@@ -8,6 +8,7 @@ use Class::Tiny qw(basedir repository id), {
 	precmds      => [],
 	postcmds     => [],
 	templates    => [],
+	artifacts    => [],
 };
 
 use Data::Dumper;
@@ -46,6 +47,7 @@ my $templateschema = Dict[
 	perm       => Optional[Str],
 ];
 my $dependencyschema = Str;
+my $globschema = Str;
 
 my $packageschema = Dict[
 	dependencies => Optional[ArrayRef[$dependencyschema]],
@@ -53,6 +55,7 @@ my $packageschema = Dict[
 	templates    => Optional[ArrayRef[$templateschema]],
 	precmds      => Optional[ArrayRef[$commandschema]],
 	postcmds     => Optional[ArrayRef[$commandschema]],
+	artifacts    => Optional[ArrayRef[$globschema]],
 ];
 
 sub BUILD {
@@ -163,6 +166,17 @@ sub to_transactions {
 	}
 
 	@transactions;
+}
+
+sub gc {
+	my ($self) = @_;
+
+	my @files     = map { $_->{dest} } @{$self->files}, @{$self->templates};
+	my @artifacts = map { Igor::Util::glob($_) } @{$self->artifacts};
+
+	return map {
+		path($_)->realpath->stringify
+	} @files, @artifacts;
 }
 
 1;

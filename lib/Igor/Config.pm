@@ -218,6 +218,27 @@ sub expand_packages {
 		} @packages;
 }
 
+# Given a list of packages (as Igor::Package) get all inactive packages
+sub complement_packages {
+	my ($self, $packages) = @_;
+
+	my %blacklist;
+	$blacklist{$_->id} = 1 for (@$packages);
+
+	my @complement;
+	my $packagedb = $self->packagedb;
+	my $repos     = $self->repositories;
+	for my $name (keys %$packagedb) {
+		next if $blacklist{$name};
+		for my $repo (@{$packagedb->{$name}}) {
+			$repo = $repos->{$repo};
+
+			push @complement, $repo->resolve_package($name);
+		}
+	}
+
+	return @complement;
+}
 
 sub build_package_db {
 	my ($self, $repositories) = @_;
@@ -235,6 +256,8 @@ sub build_package_db {
 			push(@{$packagedb{$pkg}}, $name);
 		}
 	}
+
+	log_trace "Build packagedb:\n" . Dumper(\%packagedb);
 
 	$self->repositories(\%repos);
 	$self->packagedb(\%packagedb);

@@ -6,15 +6,16 @@ use strict;
 use warnings;
 
 use Data::Dumper;
+use File::Glob ':bsd_glob';
 use Graph;
 use Graph::Directed;
-use Net::Domain;
-use Sys::Hostname;
 use Log::ger;
+use Net::Domain;
 use Path::Tiny;
+use Sys::Hostname;
+use Term::ANSIColor ();
 use TOML;
 use TOML::Parser;
-use Term::ANSIColor ();
 
 sub read_toml {
 	my ($filepath) = @_;
@@ -99,6 +100,12 @@ sub colored {
 			return @_;
 		}
 	}
+}
+
+sub glob {
+	my ($pattern) = @_;
+
+	return bsd_glob($pattern, GLOB_BRACE | GLOB_MARK | GLOB_NOSORT | GLOB_QUOTE | GLOB_TILDE);
 }
 
 1;
