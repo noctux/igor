@@ -135,7 +135,8 @@ sub to_transactions {
 	# Symlink and create files
 	for my $file (@{$self->files}) {
 		my $source = path("@{[$self->basedir]}/$file->{source}");
-		$file->{perm} //= $source->stat->mode;
+		# File mode bits: 07777 -> parts to copy
+		$file->{perm} //= $source->stat->mode & 07777;
 		push @transactions, Igor::Operation::FileTransfer->new(
 			package => $self,
 			source  => $source,

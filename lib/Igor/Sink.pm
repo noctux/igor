@@ -134,7 +134,10 @@ sub stringify {
 	my ($self) = @_;
 
 	my $name = $self->path->stringify;
-	$name .= " (chmod $self->perm)" if defined $self->perm;
+	if(defined $self->perm) {
+		my $perm = sprintf("%o", $self->perm);
+		$name .= " (chmod $perm)";
+	}
 
 	return $name;
 }
