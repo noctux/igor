@@ -201,6 +201,9 @@ sub main {
 		push @transactions, @$colltrans;
 		$ctx->{$_} = $effective_configuration->{$_} for qw(facts packages);
 
+		# Run the factors defined in the configuration
+		push @transactions, @{$config->build_factor_transactions($effective_configuration->{factors})};
+
 		# Make sure they are ordered correctly:
 		@transactions = sort {$a->order cmp $b->order} @transactions;
 
@@ -212,9 +215,15 @@ sub main {
 				try {
 					$code->($trans);
 				} catch {
-					log_error("Error occured when processing package @{[$trans->package->qname]}:");
+					my $id;
+					if (defined($trans->package)) {
+						$id = "package @{[$trans->package->qname]}";
+					} else {
+						$id = "toplevel or automatic transaction";
+					}
+					log_error("Error occured when processing $id:");
 					log_error($_);
-					die "Got a terminal failure for @{[$trans->package->qname]}";
+					die "Got a terminal failure for $id";
 				}
 			}
 		};

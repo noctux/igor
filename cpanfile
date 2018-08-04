@@ -12,6 +12,7 @@ requires 'Log::ger::Output::Composite'; # https://metacpan.org/pod/Log::ger
 requires 'Log::ger::Output::Screen';    # https://metacpan.org/pod/Log::ger
 requires 'Path::Tiny';                  # https://metacpan.org/pod/Path::Tiny
 requires 'Safe';                        # https://metacpan.org/pod/Safe
+requires 'String::ShellQuote';          # https://metacpan.org/pod/String::ShellQuote
 requires 'TOML';                        # https://metacpan.org/pod/TOML
 requires 'Text::Diff';                  # https://metacpan.org/pod/Text::Diff
 requires 'Text::Template';              # https://metacpan.org/pod/Text::Template

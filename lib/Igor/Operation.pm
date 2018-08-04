@@ -133,16 +133,18 @@ sub gen_template_variable_declarations {
 sub prepare {
 	my ($self, $ctx) = @_;
 
-	my $facts    = $ctx->{facts};
-	my $packages = $ctx->{packages};
-	my $srcfile  = $self->template;
+	my $facts     = $ctx->{facts};
+	my $packages  = $ctx->{packages};
+	my $automatic = $ctx->{automatic};
+	my $srcfile   = $self->template;
 
 	log_debug "Preparing Template: $srcfile";
 
 	# Hash for passing gathered facts and installed packages into templates
 	const my $data => {
-		facts    => $facts,
-		packages => $packages,
+		facts     => $facts,
+		packages  => $packages,
+		automatic => $automatic,
 	};
 
 	# Use stricts requires that we predeclare those variables
@@ -261,7 +263,7 @@ sub apply   {
 	my $backend = $self->backend;
 	my $data    = $self->data;
 
-	log_trace "Filetransfer: @{[$self->sink]} with $data";
+	log_trace "Filetransfer: @{[$self->sink->stringify]} with $data";
 	# Symlink the two files...
 	return $self->sink->emit($backend, $data, $ctx);
 }
@@ -410,6 +412,87 @@ sub log {
 sub diff {
 	my ($self) = @_;
 
+	return '';
+}
+
+package Igor::Operation::RunFactor;
+use strict;
+use warnings;
+
+use Class::Tiny qw(path), {
+	type  => "perl",
+};
+use parent 'Igor::Operation';
+
+use Igor::Merge;
+use String::ShellQuote;
+use TOML;
+use TOML::Parser;
+use Try::Tiny;
+use Log::ger;
+
+sub prepare {
+	my ($self, $ctx) = @_;
+
+	my $facts;
+	if ($self->type eq 'perl') {
+		log_debug "Executing file '@{[$self->path]}' as perl-factor";
+		my $source = $self->path->slurp;
+		log_trace "Executing @{[$self->path]}:\n$source";
+		my $factor = eval { eval($source) };
+		die "Failure while evaluating the perl-factor at @{[$self->path]}: $@\n" if not defined $factor;
+		$facts = $factor->();
+	} elsif ($self->type eq 'script') {
+		log_debug "Executing file '@{[$self->path]}' as script-factor";
+		local $TOML::PARSER = TOML::Parser->new(
+			inflate_boolean => sub { $_[0] eq 'true' ? \1 : \0 },
+		);
+		my $cmd = shell_quote($self->path);
+		my $output = `$cmd`;
+		if ($? == -1) {
+			die "Failed to execute factor $cmd: $!\n";
+		} elsif ($? & 127) {
+			die "Factor '$cmd' died with signal @{[($? & 127)]}\n";
+		} elsif (($? >> 8) != 0) {
+			die "Factor '$cmd' failed: Factor exited with @{[$? >> 8]}\n";
+		}
+
+		if (!defined($output)) {
+			die "Failed to run factor command: '$cmd'";
+		}
+
+		try {
+			$facts = from_toml($output);
+		} catch {
+			die "Factor '$cmd' failed: Invalid TOML produces:\n$_";
+		}
+	} else {
+		die "Unknown factor type: @{[$self->type]}";
+	}
+
+	# Use the HashMerger to merge the automatic variables
+	my $auto = $ctx->{automatic} // {};
+	my $merger = Igor::Merge->new();
+	$ctx->{automatic} = $merger->merge($auto, $facts);
+	1;
+}
+
+sub check   {
+	1;
+}
+
+sub apply {
+	1;
+}
+
+sub log {
+	my ($self) = @_;
+	log_info "Already executed factor '@{[$self->path]}' of type @{[$self->type]}";
+	1;
+}
+
+sub diff {
+	my ($self) = @_;
 	return '';
 }
 

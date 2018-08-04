@@ -32,11 +32,16 @@ my $collectionschema = Dict[
 my $repositoryschema = Dict[
 	path => Str,
 ];
+my $factorschema = Dict [
+	path => Str,
+	type => Optional[Str],
+];
 my $configurationschema = Dict[
 	dependencies => Optional[ArrayRef[Str]],
 	packages     => Optional[ArrayRef[$packageschema]],
 	repositories => Optional[HashRef[$repositoryschema]],
 	facts        => Optional[Any],
+	factors      => Optional[ArrayRef[$factorschema]],
 	collections  => Optional[HashRef[$collectionschema]],
 	pattern      => Optional[Str],
 ];
@@ -53,15 +58,24 @@ sub BUILD {
 		#my $cfg = $args->{configurations}->{$cfgkey};
 		$cfg //= {};
 		$cfg->{repositories} //= {};
+		my $base = $args->{file}->parent;
+		my $make_abs = sub {
+			my $path = path($_[0]);
+			if ($path->is_relative) {
+				# Resolve relative paths in relation to the config file
+				$path = path("$base/$path");
+			}
+			$path
+		};
+		for my $factor (@{$cfg->{factors}}) {
+			if (exists $factor->{path}) {
+				$factor->{path} = $make_abs->($factor->{path});
+			}
+		}
 		for my $repokey (keys %{$cfg->{repositories}}) {
 			my $repo = $cfg->{repositories}->{$repokey};
 			if (exists $repo->{path}) {
-				my $path = path($repo->{path});
-				if ($path->is_relative) {
-					# Resolve relative paths in relation to the config file
-					$path = path("@{[$args->{file}->parent]}/$path");
-				}
-				$repo->{path} = $path;
+				$repo->{path} = $make_abs->($repo->{path});
 			}
 		}
 		$cfg->{collections} //= {};
@@ -77,6 +91,7 @@ sub from_file {
 
 	# Parse and read the config file
 	my $conf = Igor::Util::read_toml($filepath);
+	log_debug "Parsed configuration at '$filepath':\n" . Dumper($conf);
 
 	try {
 		# Validate the config
@@ -112,6 +127,7 @@ sub determine_effective_configuration {
 
 	my $merger = Igor::Merge->new(
 		mergers => {
+			factors      => \&Igor::Merge::list_concat,
 			packages     => \&Igor::Merge::uniq_list_merge,
 			dependencies => \&Igor::Merge::uniq_list_merge,
 			# repositories and collections use the default hash merger, same for facts
@@ -290,6 +306,17 @@ sub build_collection_context {
 	}
 
 	return ($ctx, \@transactions);
+}
+
+sub build_factor_transactions {
+	my ($self, $factors) = @_;
+
+	my @transactions;
+	for my $factor (@$factors) {
+		push @transactions, Igor::Operation::RunFactor->new(%$factor, order => 1);
+	}
+
+	return \@transactions;
 }
 
 1;

@@ -682,6 +682,12 @@ DISTRIBUTIONS
       Sub::Identify 0.03
       Test::Simple 0.61
       perl v5.6.2
+  String-ShellQuote-1.04
+    pathname: R/RO/ROSCH/String-ShellQuote-1.04.tar.gz
+    provides:
+      String::ShellQuote 1.04
+    requirements:
+      ExtUtils::MakeMaker 0
   String-Wildcard-Bash-0.03
     pathname: P/PE/PERLANCAR/String-Wildcard-Bash-0.03.tar.gz
     provides:
