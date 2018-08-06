@@ -30,6 +30,8 @@ sub prepare_file_for_backend {
 		return $file->absolute;
 	} elsif ($backend == Igor::Pipeline::Type::TEXT) {
 		# Text backend: Pass by content
+		die "@{[$file->stringify]}: Is no regular file\n" .
+		    "Only operation 'symlink' with regular file targets (no collections)" unless -f $file;
 		return $file->slurp_utf8;
 	}
 
@@ -137,6 +139,8 @@ sub prepare {
 	my $packages  = $ctx->{packages};
 	my $automatic = $ctx->{automatic};
 	my $srcfile   = $self->template;
+
+	die "Template $srcfile is not a regular file" unless -f $srcfile;
 
 	log_debug "Preparing Template: $srcfile";
 

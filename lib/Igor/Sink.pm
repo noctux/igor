@@ -35,6 +35,7 @@ use warnings;
 use parent 'Igor::Sink';
 use Class::Tiny qw(path), {
 	perm => undef,
+	operation => undef,
 };
 
 use Const::Fast;
@@ -46,12 +47,35 @@ use Fcntl ':mode';
 
 const my @REQUIRES => (Igor::Pipeline::Type::FILE, Igor::Pipeline::Type::TEXT);
 
+sub BUILD {
+	my ($self, $args) = @_;
+	$args->{operation} //= 'symlink';
+
+	unless (grep { /^\Q$args->{operation}\E$/ } qw(symlink copy)) {
+		die "Illegal file operation specified for @{[$args->{path}]}: $args->{operation}";
+	}
+}
+
 sub requires { return \@REQUIRES; }
+
+sub prepare_for_copy {
+	my ($self, $typeref, $dataref) = @_;
+
+	if (defined $self->operation && $self->operation eq "copy") {
+		$$typeref = Igor::Pipeline::Type::TEXT;
+		# Text backend: Pass by content
+		die "@{[$$dataref->stringify]}: Is no regular file\n" .
+		    "Only operation 'symlink' with regular file targets (no collections) are supported for directories" unless -f $$dataref;
+		$$dataref = $$dataref->slurp_utf8();
+	}
+}
 
 sub check {
 	my ($self, $type, $data) = @_;
 
 	my $changeneeded = 0;
+
+	prepare_for_copy($self, \$type, \$data);
 
 	if ($type == Igor::Pipeline::Type::TEXT) {
 		try {
@@ -76,6 +100,8 @@ sub emit {
 	my ($self, $type, $data) = @_;
 
 	return Igor::Pipeline::Type::UNCHANGED unless $self->check($type, $data);
+
+	prepare_for_copy($self, \$type, \$data);
 
 	# Create directory if the target directory does not exist
 	unless ($self->path->parent->is_dir) {
@@ -109,6 +135,8 @@ sub emit {
 
 sub diff {
 	my ($self, $type, $data, undef, %opts) = @_;
+
+	prepare_for_copy($self, \$type, \$data);
 
 	my $diff;
 	if ($type == Igor::Pipeline::Type::TEXT) {

@@ -29,13 +29,13 @@ my $fileschema     = Dict[
 	source     => Str,
 	dest       => Str,
 	perm       => Optional[Str],
+	operation  => Optional[Str]
 ];
 # Dependencies are files with a special preprocessingstep...
 my $templatedelimiter = Dict[
 	open  => Str,
 	close => Str,
 ];
-# TODO: Integrate filesystem permissions here
 my $templateschema = Dict[
 	source     => Str,
 	collection => Str,
@@ -110,7 +110,7 @@ sub determine_sink {
 	 my ($file, $id) = @_;
 
 	if (defined($file->{dest})) {
-		return Igor::Sink::File->new(path => $file->{dest}, id => $id, perm => $file->{perm});
+		return Igor::Sink::File->new(path => $file->{dest}, id => $id, perm => $file->{perm}, operation => $file->{operation});
 	} elsif (defined($file->{collection})) {
 		return Igor::Sink::Collection->new(collection => $file->{collection}, id => $id);
 	} else {
