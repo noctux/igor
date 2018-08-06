@@ -437,10 +437,7 @@ sub prepare {
 	my $facts;
 	if ($self->type eq 'perl') {
 		log_debug "Executing file '@{[$self->path]}' as perl-factor";
-		my $source = $self->path->slurp;
-		log_trace "Executing @{[$self->path]}:\n$source";
-		my $factor = eval { eval($source) };
-		die "Failure while evaluating the perl-factor at @{[$self->path]}: $@\n" if not defined $factor;
+		my $factor = Igor::Util::file_to_coderef($self->path);
 		$facts = $factor->();
 	} elsif ($self->type eq 'script') {
 		log_debug "Executing file '@{[$self->path]}' as script-factor";

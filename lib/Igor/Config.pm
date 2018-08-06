@@ -18,12 +18,11 @@ use List::Util qw(reduce);
 use Log::ger;
 use Path::Tiny;
 use Try::Tiny;
-use Types::Standard qw(Any ArrayRef Dict HashRef Optional Str);
+use Types::Standard qw(Any ArrayRef Dict HashRef Map Optional Str);
 use Storable qw(dclone);
 
 # Config file Schemata for TOML validation
 my $packageschema = Str;
-# TODO: Integrate filesystem permissions here
 my $collectionschema = Dict[
 	destination => Str,
 	merger      => Optional[Str],
@@ -36,7 +35,10 @@ my $factorschema = Dict [
 	path => Str,
 	type => Optional[Str],
 ];
+my $mergers = Map[Str, Str];
 my $configurationschema = Dict[
+	mergers      => Optional[$mergers],
+	mergeconfig  => Optional[HashRef],
 	dependencies => Optional[ArrayRef[Str]],
 	packages     => Optional[ArrayRef[$packageschema]],
 	repositories => Optional[HashRef[$repositoryschema]],
@@ -53,9 +55,15 @@ my $configschema = Dict[
 sub BUILD {
 	my ($self, $args) = @_;
 
+	# Merge configurations can only be applied configured in the defaults configuration
+	for my $key (keys %{$args->{configurations}}) {
+		if (exists($args->{configurations}->{$key}->{mergeconfig})) {
+			die "Syntax error for configuration $key: mergeconfigs may only be applied in the defaults section";
+		}
+	}
+
 	# Build Path::Tiny objects
 	for my $cfg (values %{$args->{configurations}}, $args->{defaults}) {
-		#my $cfg = $args->{configurations}->{$cfgkey};
 		$cfg //= {};
 		$cfg->{repositories} //= {};
 		my $base = $args->{file}->parent;
@@ -82,6 +90,10 @@ sub BUILD {
 		for my $collkey (keys %{$cfg->{collections}}) {
 			my $coll = $cfg->{collections}->{$collkey};
 			$coll->{destination} = path($coll->{destination}) if exists $coll->{destination};
+		}
+		$cfg->{mergers} //= {};
+		for my $merger (keys %{$cfg->{mergers}}) {
+			$cfg->{mergers}->{$merger} = $make_abs->($cfg->{mergers}->{$merger});
 		}
 	}
 }
@@ -125,13 +137,23 @@ sub determine_effective_configuration {
 		$cfg;
 	} reverse @cfgnames;
 
+	my $configmergers = {
+		factors      => \&Igor::Merge::list_concat,
+		packages     => \&Igor::Merge::uniq_list_merge,
+		dependencies => \&Igor::Merge::uniq_list_merge,
+		# repositories and collections use the default hash merger, same for facts
+	};
+	my $mergers = $self->defaults->{mergers} // {};
+	$configmergers = Igor::Util::traverse_nested_hash($self->defaults->{mergeconfig}, sub {
+			my ($name, $bc) = @_;
+			unless(exists $mergers->{$name}) {
+				die "Configured merger '$name' for path @{$bc} is not defined";
+			}
+			Igor::Util::file_to_coderef($mergers->{$name});
+		});
+
 	my $merger = Igor::Merge->new(
-		mergers => {
-			factors      => \&Igor::Merge::list_concat,
-			packages     => \&Igor::Merge::uniq_list_merge,
-			dependencies => \&Igor::Merge::uniq_list_merge,
-			# repositories and collections use the default hash merger, same for facts
-		},
+		mergers => $configmergers,
 	);
 
 	# Prepend the defaults to the cfg list
@@ -282,7 +304,8 @@ sub build_package_db {
 }
 
 sub build_collection_context {
-	my ($self, $collections) = @_;
+	my ($self, $configuration) = @_;
+	my $collections = $configuration->{collections};
 
 	my @transactions;
 	my $ctx = { collections => {} };
@@ -290,12 +313,25 @@ sub build_collection_context {
 	for my $coll (keys %$collections) {
 		$ctx->{collections}->{$coll} = {};
 		my $pkg = Igor::Package->new(basedir => $self->file, repository => undef, id => "collection_$coll");
-		push @transactions, Igor::Operation::EmitCollection->new(
-			collection => $coll,
-			merger => sub { my $hash = shift;
+		my $merger;
+		if (defined $collections->{$coll}->{merger}) {
+			my $mergerid   = $collections->{$coll}->{merger};
+			my $mergerfile = $configuration->{mergers}->{$mergerid};
+			die "No such merger defined: $mergerid" unless defined $mergerfile;
+			try {
+				$merger = Igor::Util::file_to_coderef($mergerfile);
+			} catch {
+				die "Error while processing collection '$coll': cannot create merger from $mergerfile: $_";
+			}
+		} else {
+			$merger = sub { my $hash = shift;
 				my @keys = sort { $a cmp $b } keys %$hash;
 				join('', map {$hash->{$_}} @keys)
-			},
+			};
+		}
+		push @transactions, Igor::Operation::EmitCollection->new(
+			collection => $coll,
+			merger => $merger,
 			sink => Igor::Sink::File->new( path => $collections->{$coll}->{destination}
 				                         , id => $pkg
 				                         , perm => $collections->{$coll}->{perm}

@@ -197,7 +197,7 @@ sub main {
 		#   diff    (show differences between repository- and filesystem-state
 
 		# Build the context and create the "EmitCollection" transactions for the collections
-		my ($ctx, $colltrans) = $config->build_collection_context($effective_configuration->{collections});
+		my ($ctx, $colltrans) = $config->build_collection_context($effective_configuration);
 		push @transactions, @$colltrans;
 		$ctx->{$_} = $effective_configuration->{$_} for qw(facts packages);
 

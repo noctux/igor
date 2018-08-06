@@ -5,6 +5,7 @@ use Exporter 'import';
 use strict;
 use warnings;
 
+use Data::Diver qw(DiveRef);
 use Data::Dumper;
 use File::Glob ':bsd_glob';
 use Graph;
@@ -12,6 +13,7 @@ use Graph::Directed;
 use Log::ger;
 use Net::Domain;
 use Path::Tiny;
+use Scalar::Util qw(reftype);
 use Sys::Hostname;
 use Term::ANSIColor ();
 use TOML;
@@ -106,6 +108,46 @@ sub glob {
 	my ($pattern) = @_;
 
 	return bsd_glob($pattern, GLOB_BRACE | GLOB_MARK | GLOB_NOSORT | GLOB_QUOTE | GLOB_TILDE);
+}
+
+# Read a file (as Path::Tiny instances) containing a sub and return the correspoding coderef
+sub file_to_coderef {
+	my ($path) = @_;
+	my $source = $path->slurp;
+	log_trace "Executing @{[$path]}:\n$source";
+	my $coderef = eval { eval($source) };
+	die "Failure while evaluating the coderef at @{[$path]}: $@\n" if not defined $coderef;
+	return $coderef;
+}
+
+# Traversal for HASH of HASH of HASH ... calls the callback with the value and current list of breadcrumbs
+# i.e.: [key1, innerkey2, innermostkey3]
+sub traverse_nested_hash {
+	my ($hash, $cb) = @_;
+
+	my @worklist = ({
+		breadcrumbs => [],
+		data => $hash,
+	});
+
+	my %result;
+
+	while(@worklist) {
+		my $ctx = pop @worklist;
+		my @breadcrumbs = @{$ctx->{breadcrumbs}};
+		my $d = $ctx->{data};
+		if (reftype($d) // '' eq 'HASH') {
+			for my $k (keys %$d) {
+				my $bc = [@breadcrumbs, $k];
+				push @worklist, { breadcrumbs => $bc, data => $d->{$k}};
+			}
+		} else {
+			my $ref = DiveRef(\%result, @breadcrumbs);
+			$$ref = $cb->($d, \@breadcrumbs);
+		}
+	}
+
+	return \%result;
 }
 
 1;
