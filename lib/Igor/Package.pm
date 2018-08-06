@@ -177,7 +177,7 @@ sub gc {
 
 	return map {
 		path($_)->realpath->stringify
-	} @files, @artifacts;
+	} grep { defined($_) } @files, @artifacts;
 }
 
 1;

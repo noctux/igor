@@ -258,14 +258,21 @@ sub main {
 		my %uniq;
 		$uniq{$_} = 1 for @blacklist;
 
-		# Rewrite urles to use ~ for $HOME if possible
+		# Remove files created by installed packages
+		# (e.g.: two packages provide ~/config/tmux.conf, one of which is installed)
+		my @whitelist = map {
+			$_->gc()
+		} @packages;
+		delete $uniq{$_} for @whitelist;
+
+		# Rewrite urls to use ~ for $HOME if possible
 		if (defined($ENV{HOME})) {
 			@blacklist = map { $_ =~ s/^\Q$ENV{HOME}\E/~/; $_ } keys %uniq;
 		} else {
 			@blacklist = keys %uniq;
 		}
 
-		print $_ . "\n" for @blacklist;
+		print $_ . "\n" for sort @blacklist;
 	} else {
 		die "Internal: Unknown subcommand $subcommand";
 	}
