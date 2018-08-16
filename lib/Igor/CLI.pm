@@ -201,6 +201,18 @@ sub main {
 		push @transactions, @$colltrans;
 		$ctx->{$_} = $effective_configuration->{$_} for qw(facts packages);
 
+
+		my @files = map {
+			$_->get_files()
+		} @packages;
+		my %uniq;
+		for my $f (@files) {
+			if ($uniq{$f}++) {
+				die "Multiple packages produce file '$f' which is not an collection";
+			}
+		}
+
+
 		# Run the factors defined in the configuration
 		push @transactions, @{$config->build_factor_transactions($effective_configuration->{factors})};
 
@@ -261,7 +273,7 @@ sub main {
 		# Remove files created by installed packages
 		# (e.g.: two packages provide ~/config/tmux.conf, one of which is installed)
 		my @whitelist = map {
-			$_->gc()
+			$_->get_files()
 		} @packages;
 		delete $uniq{$_} for @whitelist;
 

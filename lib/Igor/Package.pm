@@ -169,6 +169,15 @@ sub to_transactions {
 	@transactions;
 }
 
+sub get_files {
+	my ($self) = @_;
+
+	my @files     = map { $_->{dest} } @{$self->files}, @{$self->templates};
+	return map {
+		path($_)->realpath->stringify
+	} grep { defined($_) } @files;
+}
+
 sub gc {
 	my ($self) = @_;
 
