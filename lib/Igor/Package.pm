@@ -79,6 +79,16 @@ sub from_file {
 	return from_hash($conf, $packagedir, $repository);
 }
 
+sub from_perl_file {
+	my ($filepath, $repository, $config) = @_;
+
+	my $packagesub = Igor::Util::file_to_coderef($filepath);
+	my $conf = $packagesub->($config);
+	my $packagedir = path($filepath)->parent;
+
+	return from_hash($conf, $packagedir, $repository);
+}
+
 sub from_hash {
 	my ($conf, $basedir, $repository) = @_;
 	try {

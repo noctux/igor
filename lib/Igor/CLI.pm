@@ -173,8 +173,11 @@ sub main {
 	log_trace "Effective configuration:\n" . Dumper($effective_configuration);
 
 	# Determine which packages need to be installed
+	# FIXME: Run factors before expanding perl-based packages.
 	my @packages = $config->expand_packages( $effective_configuration->{repositories}
-	                                       , $effective_configuration->{packages});
+	                                       , $effective_configuration->{packages}
+	                                       , $effective_configuration
+	                                       );
 	log_debug "Packages to be installed: @{[map {$_->qname} @packages]}";
 	log_trace "Packages to be installed:\n" . Dumper(\@packages);
 

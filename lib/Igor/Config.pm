@@ -217,10 +217,10 @@ sub resolve_package {
 #
 # Returns all packages that need to be installed
 sub expand_packages {
-	my ($self, $repositories, $packages) = @_;
+	my ($self, $repositories, $packages, $config) = @_;
 
 	# This sets $self->repositories and $self->packagedb
-	$self->build_package_db($repositories);
+	$self->build_package_db($repositories, $config);
 
 	# Resolve all packages to qnames
 	my @resolved = map {
@@ -280,7 +280,7 @@ sub complement_packages {
 }
 
 sub build_package_db {
-	my ($self, $repositories) = @_;
+	my ($self, $repositories, $config) = @_;
 
 	log_debug "Building packagedb";
 
@@ -288,7 +288,7 @@ sub build_package_db {
 	my %packagedb = ();
 
 	for my $name (sort keys %$repositories) {
-		my $repo = Igor::Repository->new(id => $name, directory => $repositories->{$name}->{path});
+		my $repo = Igor::Repository->new(id => $name, directory => $repositories->{$name}->{path}, config => $config);
 		$repos{$name} = $repo;
 
 		for my $pkg (keys %{$repo->packagedb}) {

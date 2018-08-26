@@ -9,11 +9,13 @@ use Class::Tiny qw(id directory), {
 use Igor::Package;
 use Igor::Util;
 use Path::Tiny;
+use Data::Dumper;
+use Log::ger;
 
-# Collect the packages contained in this repository
-# from the filesystem at C<dir>
+# Collect the packages contained in this repository from the filesystem at
+# C<dir> with effective configuration C<conf>
 sub collect_packages {
-	my ($self, $dir) = @_;
+	my ($self, $dir, $conf) = @_;
 
 	# Sanity check
 	die "Configured Repository at $dir is not an directory" unless $dir->is_dir;
@@ -23,10 +25,15 @@ sub collect_packages {
 		sub {
 			my ($path, $state) = @_;
 
-			my $packagedesc = $path->child("package.toml");
-			return unless $packagedesc->is_file;
+			my $package;
+			if ((my $packagedesc = $path->child("package.toml"))->is_file) {
+				$package = Igor::Package::from_file($packagedesc, $self);
+			} elsif ((my $packagedescpl = $path->child("package.pl"))->is_file) {
+				$package = Igor::Package::from_perl_file($packagedescpl, $self, $conf);
+				log_debug ("Evaluated @{[$packagedescpl->stringify]}: " . Dumper($package));
+			}
+			return unless defined($package);
 
-			my $package = Igor::Package::from_file($packagedesc, $self);
 			$state->{$path->basename} = $package;
 		}
 	);
@@ -63,7 +70,7 @@ sub BUILD {
 		$self->directory(path($self->directory));
 	}
 
-	$self->packagedb($self->collect_packages($self->directory));
+	$self->packagedb($self->collect_packages($self->directory, $args->{config}));
 }
 
 1;
