@@ -174,7 +174,14 @@ sub get_files {
 
 	my @files     = map { $_->{dest} } @{$self->files}, @{$self->templates};
 	return map {
-		path($_)->realpath->stringify
+		my $file = $_;
+		try {
+			$file = path($file)->realpath->stringify
+		} catch {
+			# Nonexistent file -> realpath does not work
+			$file = path($file)->absolute->stringify
+		};
+		$file
 	} grep { defined($_) } @files;
 }
 
