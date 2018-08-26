@@ -144,13 +144,14 @@ sub determine_effective_configuration {
 		# repositories and collections use the default hash merger, same for facts
 	};
 	my $mergers = $self->defaults->{mergers} // {};
-	$configmergers = Igor::Util::traverse_nested_hash($self->defaults->{mergeconfig}, sub {
+	my $cm = Igor::Util::traverse_nested_hash($self->defaults->{mergeconfig} // {}, sub {
 			my ($name, $bc) = @_;
 			unless(exists $mergers->{$name}) {
 				die "Configured merger '$name' for path @{$bc} is not defined";
 			}
 			Igor::Util::file_to_coderef($mergers->{$name});
 		});
+	$configmergers->{$_} = $cm->{$_} for (keys %$cm);
 
 	my $merger = Igor::Merge->new(
 		mergers => $configmergers,
