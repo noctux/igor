@@ -1,0 +1,12 @@
+unbind C-b
+{
+if ($facts{perl}) {
+<<EOF
+	FOO
+	BAR
+	BAZ
+EOF
+	}
+}set -g prefix C-a
+bind C-a send-prefix
+# escape($contextinfo)

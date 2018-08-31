@@ -1,0 +1,16 @@
+precmds = [
+	["echo", "Hello World"],
+	["echo", "Hallo Welt"],
+]
+
+postcmds = [
+	"echo 'Good Bye'",
+]
+
+[[templates]]
+source     = "./tmux.conf.tmpl"
+dest       = "~/config/tmux.conf"
+
+[[files]]
+source     = "./env.sh"
+collection = "env.sh"

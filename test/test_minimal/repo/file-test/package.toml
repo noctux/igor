@@ -1,0 +1,30 @@
+[[templates]]
+source     = "./template.tmpl"
+dest       = "~/test/template.test"
+
+[[templates]]
+source     = "./template.tmpl"
+collection = "test1.collection"
+
+[[files]]
+source     = "./collection.plain"
+collection = "test2.collection"
+
+[[files]]
+source     = "./symlink"
+dest       = "~/test/symlink"
+operation  = "symlink"
+
+[[files]]
+source     = "./copy"
+dest       = "~/test/copy"
+operation  = "copy"
+
+[[files]]
+source     = "./symlink-default"
+dest       = "~/test/symlink-default"
+
+[[files]]
+source     = "./directory"
+dest       = "~/test/dirsymlink"
+

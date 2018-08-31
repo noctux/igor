@@ -1,0 +1,18 @@
+precmds = [
+	["echo", "Hello World"],
+	["echo", "Hallo Welt"],
+]
+
+postcmds = [
+	"echo 'Good Bye'",
+]
+
+artifacts = [ '~/.artifact{1,2,3,4,5}', '~/.artifact*.{c,h}']
+
+#[[templates]]
+#source     = "./tmux.conf.tmpl"
+#dest       = "./config/tmux.conf"
+
+[[files]]
+source     = "./env.sh"
+dest       = "~/.bashrc"

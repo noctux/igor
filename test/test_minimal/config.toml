@@ -1,0 +1,48 @@
+[defaults]
+	repositories = {
+		main = { path = './repo' }
+	}
+	facts = {
+		haskell = true,
+	}
+	factors = [
+		{path = './factors/executables.sh', type = 'script'},
+		{path = './factors/environment.pm', type = 'perl'},
+	]
+	mergers = { altmerger = './mergers/althashmerger.pm' }
+	mergeconfig = { facts = { recursive = {hell = 'altmerger' } } }
+
+[configurations.interactive]
+	packages = ['tmux']
+	facts = {
+		haskell = true,
+		perl = true,
+		recursive = {
+			hell  = ['hades'],
+			truth = 42,
+		}
+	}
+
+[configurations.computer]
+	dependencies = ['interactive']
+	packages = ['vim', 'file-test', 'perlpackage-test']
+	facts = {
+		haskell = false,
+		recursive = {hell = ['hades', 'hel']},
+	}
+	mergers = {
+		envmerger = './mergers/envmerger.pm',
+	}
+	collections = {
+		'env.sh' = {
+			destination = '~/env.sh',
+			merger = 'envmerger',
+		},
+		'test1.collection' = {
+			destination = '~/test/test1.collection',
+			perm = "0644",
+		},
+		'test2.collection' = {
+			destination = '~/test/test2.collection',
+		}
+	}
