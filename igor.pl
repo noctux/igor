@@ -108,7 +108,7 @@ management. Therefore, instead of delivering all dotfiles at once, files are
 grouped into L<packages|/PACKAGES> which can be enabled for individual hosts
 selectively.
 
-L<Configurations|/CONFIGURATIONS> describe the set of packages that igor should
+L<Configurations|/CONFIGURATION> describe the set of packages that igor should
 activate. By providing L<facts|/facts> for the current environment, they further
 allow igor to customize the packages and their templates before deployment.
 
@@ -200,7 +200,7 @@ Here, C<profile> specifies the name of the collection. All content from all
 configured packages for said collection is collected, merged and then deployed
 on the host.
 The merge and deployment of named collections is configured in the
-L<top level configuration file/CONFIGURATION>.
+L<top level configuration file|/CONFIGURATION>.
 
 =item Templates
 
@@ -211,8 +211,8 @@ Example: On work computers, I want to set my work email address as the default
 git C<user.email>.
 
 To this end, the user can configure facts for any active configuration inside
-the L<top level configuration file/CONFIGURATION> or derive them automatically
-from the environments via L<factors|/FIXME>.
+the L<top level configuration file|/CONFIGURATION> or derive them automatically
+from the environments via L<factors|/Custom factors>.
 
 This information can then be interpolated into template files. The templating
 is based on L<Text::Template|https://metacpan.org/pod/Text::Template>, which
@@ -856,9 +856,11 @@ data structures with the expected format.
 Igor provides a F<cartonfile> to declare and manage its library dependencies.
 Therefore L<carton|https://metacpan.org/release/carton> can be used to install
 the required nonstandard libraries:
+
 	carton install
 
 Carton can then be used to execute C<igor> with those locally installed libs:
+
 	carton exec -- ./igor.pl --help
 
 =head4 Running tests
