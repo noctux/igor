@@ -37,10 +37,19 @@ use Log::ger::Util;
 
 # Emit usage
 sub usage {
+	# -verbosity == 99: Only print sections in -section
 	pod2usage( -verbose  => 99
 	         , -exitval  => 'NOEXIT'
 	         , -sections => 'SYNOPSIS'
 	         );
+}
+
+sub usage_full {
+	# -verbose > 2: Print all sections
+	pod2usage( -verbose  => 42
+	         , -exitval  => 'NOEXIT'
+	         );
+
 }
 
 # Find out which task to run based on the --task variable or the system hostname
@@ -69,7 +78,7 @@ sub parse_commandline {
 	my %opts = (
 		configfile => './config.toml',
 		verbositylevel  => 0,
-		help => '',
+		help => 0,
 
 	);
 
@@ -78,7 +87,7 @@ sub parse_commandline {
 
 		# common options recognized by all subcommands
 		options => {
-			'help|h|?' => {
+			'help|h|?+' => {
 				summary => 'Display help message',
 				handler => \$opts{help}
 			},
@@ -132,7 +141,11 @@ sub parse_commandline {
 					 );
 		} else {
 			# General help
-			usage();
+			if ($opts{help} >= 2) {
+				usage_full();
+			} else {
+				usage();
+			}
 			exit(0);
 		}
 	}
