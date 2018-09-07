@@ -542,14 +542,14 @@ Description of the modified merge strategy as a file (e.g.
 F<./mergers/althashmerger.pm>):
 
 	sub {
-		my ($a, $b, $breadcrumbs) = @_;
-		# $a : left  (= less specific) fact value
-		# $b : right (= more specific) fact value
+		my ($l, $r, $breadcrumbs) = @_;
+		# $l : left  (= less specific) fact value
+		# $r : right (= more specific) fact value
 		# $breadcrumbs: arrayref describing the position in the facts hash,
 		#               e.g. ['dev', 'languages'] for key 'facts.dev.languages'
 
 		# Here, we simply take the more specific value (default behaviour)
-		return $b;
+		return $r;
 	}
 
 Of course, you can call utility functions from igors codebase where useful:
