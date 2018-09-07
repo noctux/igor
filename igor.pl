@@ -424,7 +424,7 @@ components within the generated collection file F<env.sh>). Therefore,
 alternative merge strategies can be specified:
 
 	[configurations.config]
-	mergers = { envmerger = './mergers/envmerger.pm' }
+	mergers = { envmerger = './mergers/envmerger.pl' }
 	collections = {
 		'env.sh' = {
 			destination = '~/env.sh'
@@ -432,7 +432,7 @@ alternative merge strategies can be specified:
 		}
 	}
 
-For the contents of F<./mergers/envmerger.pm> see the section on
+For the contents of F<./mergers/envmerger.pl> see the section on
 L<custom mergers|/Custom collection mergers>
 
 =item Advanced features: C<dependencies>, C<factors>, C<mergers> and C<mergeconfigs>
@@ -539,7 +539,7 @@ preceding section. The declaration consists of three components.
 =item 1.
 
 Description of the modified merge strategy as a file (e.g.
-F<./mergers/althashmerger.pm>):
+F<./mergers/althashmerger.pl>):
 
 	sub {
 		my ($l, $r, $breadcrumbs) = @_;
@@ -566,7 +566,7 @@ path to a file containing the code as a perl subroutine, which we symbolically
 bind to the name C<altmerger>:
 
 	[defaults]
-	mergers = { altmerger = './mergers/althashmerger.pm' }
+	mergers = { altmerger = './mergers/althashmerger.pl' }
 
 B<Note:> As fact-mergers are used to merge configurations, they can only be
 specified within the C<[defaults]> section.
@@ -594,10 +594,10 @@ it insed the main config file:
 
 	[configurations.config]
 	mergers = {
-		envmerger = './mergers/envmerger.pm',
+		envmerger = './mergers/envmerger.pl',
 	}
 
-Contents of F<./mergers/envmerger.pm>, which ensures that the contents of the
+Contents of F<./mergers/envmerger.pl>, which ensures that the contents of the
 C<main/base> package will be at the head of the merged configuration file:
 
 	sub {
@@ -636,7 +636,7 @@ array in the main configuration file:
 	[defaults]
 	factors = [
 		{path = './factors/executables.sh', type = 'script'},
-		{path = './factors/environment.pm', type = 'perl'},
+		{path = './factors/environment.pl', type = 'perl'},
 	]
 
 There are two types of factors:
@@ -672,13 +672,13 @@ L<TOML|https://github.com/toml-lang/toml>, e.g.:
 
 	[defaults]
 	factors = [
-		{path = './factors/environment.pm', type = 'perl'},
+		{path = './factors/environment.pl', type = 'perl'},
 	]
 
 Execute a perl sub and use the returned perl datastructure as automatically
 generated facts, e.g.:
 
-	# ./factors/environment.pm
+	# ./factors/environment.pl
 	sub {
 		# store the environment variables as an automatic fact in "automatic.env"
 		{env => \%ENV}
@@ -712,9 +712,9 @@ Here, a more complete example showing of the different features in TOML syntax.
 		}
 		factors = [
 			{path = './factors/executables.sh', type = 'script'},
-			{path = './factors/environment.pm', type = 'perl'},
+			{path = './factors/environment.pl', type = 'perl'},
 		]
-		mergers = { altmerger = './mergers/althashmerger.pm' }
+		mergers = { altmerger = './mergers/althashmerger.pl' }
 		mergeconfig = { facts = { recursive = {hell = 'altmerger' } } }
 
 	[configurations.interactive]
@@ -736,7 +736,7 @@ Here, a more complete example showing of the different features in TOML syntax.
 			recursive = {hell = ['hades', 'hel']},
 		}
 		mergers = {
-			envmerger = './mergers/envmerger.pm',
+			envmerger = './mergers/envmerger.pl',
 		}
 		collections = {
 			'env.sh' = {
@@ -780,7 +780,7 @@ standalone.
 
 =head3 DESGIN/CODE STRUCTURE
 
-C<Igor::CLI::main> in F<lib/Igor/CLI.pm> constitutes igor's entrypoint and
+C<Igor::CLI::main> in F<lib/Igor/CLI.pl> constitutes igor's entrypoint and
 outlines the overall execution flow.
 
 The main steps are:
