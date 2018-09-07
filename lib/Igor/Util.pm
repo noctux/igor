@@ -4,6 +4,7 @@ use Exporter 'import';
 
 use strict;
 use warnings;
+use feature 'state';
 
 use Data::Diver qw(DiveRef);
 use Data::Dumper;
@@ -22,13 +23,10 @@ use TOML::Parser;
 sub read_toml {
 	my ($filepath) = @_;
 
-	# Parse and read the config file
-	my $file = path($filepath);
-
-	local $TOML::PARSER = TOML::Parser->new(
+	state $parser = TOML::Parser->new(
 		inflate_boolean => sub { $_[0] eq 'true' ? \1 : \0 },
 	);
-	my ($conf, $err) = from_toml($file->slurp_utf8);
+	my ($conf, $err) = $parser->parse_file($filepath);
 	unless ($conf) {
 		log_error "Parsing of $filepath failed: $err";
 		die $err;
