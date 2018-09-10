@@ -368,8 +368,16 @@ sub check   {
 	# If we execute a proper command (vs relying on sh),
 	# we can actually check whether the binary exists...
 	if (ref($self->command) eq 'ARRAY') {
-		my $binary = File::Which::which($self->command->[0]);
-		log_debug "Resolved @{[$self->command->[0]]} to @{[$binary // 'undef']}";
+		my $cmd = $self->command->[0];
+		my $binary;
+		if (-x $cmd) {
+			$binary = $cmd;
+		} elsif (-x "@{[$self->basedir]}/$cmd") {
+			$binary = "@{[$self->basedir]}/$cmd";
+		}else {
+			$binary = File::Which::which($cmd);
+		}
+		log_debug "Resolved $cmd to @{[$binary // 'undef']}";
 		return defined($binary);
 	}
 
