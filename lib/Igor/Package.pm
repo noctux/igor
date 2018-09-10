@@ -12,6 +12,7 @@ use Class::Tiny qw(basedir repository id), {
 };
 
 use Data::Dumper;
+use File::pushd;
 use Path::Tiny;
 use Try::Tiny;
 use Type::Tiny;
@@ -82,9 +83,13 @@ sub from_file {
 sub from_perl_file {
 	my ($filepath, $repository, $config) = @_;
 
-	my $packagesub = Igor::Util::file_to_coderef($filepath);
-	my $conf = $packagesub->($config);
 	my $packagedir = path($filepath)->parent;
+	my $packagesub = Igor::Util::file_to_coderef($filepath);
+	my $conf;
+	{ # execute this from the packageidr
+		my $dir = pushd($packagedir);
+		$conf = $packagesub->($config);
+	}
 
 	return from_hash($conf, $packagedir, $repository);
 }
