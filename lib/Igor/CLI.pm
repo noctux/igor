@@ -66,7 +66,7 @@ sub find_task {
 	} sort keys %$cfgs;
 
 	die "Automatic task selection using identifier '$identifier' not unique: " . @tasks if @tasks > 1;
-	die "Task selection using identifier '$identifier' machted no configurations" unless @tasks;
+	die "Task selection using identifier '$identifier' matched no configurations" unless @tasks;
 
 	return $tasks[0];
 }
