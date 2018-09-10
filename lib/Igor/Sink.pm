@@ -82,12 +82,15 @@ sub check {
 			$changeneeded = $self->path->slurp_utf8() ne $data;
 		} catch {
 			$changeneeded = 1;
-		}
+		};
 	} elsif ($type == Igor::Pipeline::Type::FILE) {
 		try {
 			$changeneeded = not (S_ISLNK($self->path->lstat->mode) && ($self->path->realpath eq $data->realpath));
 		} catch {
 			$changeneeded = 1;
+		};
+		if (-e $self->path && not S_ISLNK($self->path->lstat->mode)) {
+			die ("File @{[$self->path]} already exists and is not a symlink");
 		}
 	} else {
 		die "Unsupported type \"$type\" at \"@{[ __PACKAGE__ ]}\" when checking file @{[$self->path]}";
