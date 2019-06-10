@@ -102,10 +102,12 @@ sub colored {
 	}
 }
 
-sub glob {
-	my ($pattern) = @_;
+{ no warnings 'redefine';
+	sub glob {
+		my ($pattern) = @_;
 
-	return bsd_glob($pattern, GLOB_BRACE | GLOB_MARK | GLOB_NOSORT | GLOB_QUOTE | GLOB_TILDE);
+		return bsd_glob($pattern, GLOB_BRACE | GLOB_MARK | GLOB_NOSORT | GLOB_QUOTE | GLOB_TILDE);
+	}
 }
 
 # Read a file (as Path::Tiny instances) containing a sub and return the correspoding coderef
