@@ -743,8 +743,8 @@ page or build it yourself:
 	carton install
 	./bin/fatpack.sh
 
-The fatpacked script can be found in F<./bin/igor.fatpacked.pl> and be executed
-standalone.
+The freshly built, fatpacked script can then be found in F<./igor.packed.pl>
+and be executed standalone.
 
 =head2 HACKING
 
