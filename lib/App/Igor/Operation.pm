@@ -32,7 +32,7 @@ sub prepare_file_for_backend {
 		# Text backend: Pass by content
 		die "@{[$file->stringify]}: Is no regular file\n" .
 		    "Only operation 'symlink' with regular file targets (no collections)" unless -f $file;
-		return $file->slurp_utf8;
+		return $file->slurp;
 	}
 
 	die "Internal: Unknown backend: $backend";

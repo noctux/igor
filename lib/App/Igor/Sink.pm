@@ -66,7 +66,7 @@ sub prepare_for_copy {
 		# Text backend: Pass by content
 		die "@{[$$dataref->stringify]}: Is no regular file\n" .
 		    "Only operation 'symlink' with regular file targets (no collections) are supported for directories" unless -f $$dataref;
-		$$dataref = $$dataref->slurp_utf8();
+		$$dataref = $$dataref->slurp();
 	}
 }
 
@@ -79,7 +79,7 @@ sub check {
 
 	if ($type == App::Igor::Pipeline::Type::TEXT) {
 		try {
-			$changeneeded = $self->path->slurp_utf8() ne $data;
+			$changeneeded = $self->path->slurp() ne $data;
 		} catch {
 			$changeneeded = 1;
 		};
@@ -115,7 +115,7 @@ sub emit {
 		log_trace "spew(@{[$self->path]}, " . Dumper($data) . ")";
 
 		# write the data
-		$self->path->spew_utf8($data);
+		$self->path->spew($data);
 
 		# Fix permissions if requested
 		if (defined $self->perm) {
