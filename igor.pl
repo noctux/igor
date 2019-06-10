@@ -19,6 +19,8 @@
 use warnings;
 use strict;
 
+use version; our $VERSION = version->declare("v0.1.0");
+
 BEGIN { unshift @INC, './lib'; }
 
 use Igor::CLI;
