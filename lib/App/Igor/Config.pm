@@ -1,4 +1,4 @@
-package Igor::Config;
+package App::Igor::Config;
 use strict;
 use warnings;
 
@@ -11,9 +11,9 @@ use Class::Tiny qw(file configurations), {
 use Data::Dumper;
 use Data::Diver;
 use Graph;
-use Igor::Merge;
-use Igor::Repository;
-use Igor::Util;
+use App::Igor::Merge;
+use App::Igor::Repository;
+use App::Igor::Util;
 use List::Util qw(reduce);
 use Log::ger;
 use Path::Tiny;
@@ -102,7 +102,7 @@ sub from_file {
 	my ($filepath) = @_;
 
 	# Parse and read the config file
-	my $conf = Igor::Util::read_toml($filepath);
+	my $conf = App::Igor::Util::read_toml($filepath);
 	log_debug "Parsed configuration at '$filepath':\n" . Dumper($conf);
 
 	try {
@@ -112,14 +112,14 @@ sub from_file {
 		die "Validating $filepath failed:\n$_";
 	};
 
-	return Igor::Config->new(file => path($filepath), %{$conf});
+	return App::Igor::Config->new(file => path($filepath), %{$conf});
 }
 
 sub expand_dependencies {
 	my ($cfgs, $root) = @_;
 
 	# Expand the configuration dependencies by depth first search
-	return Igor::Util::toposort_dependencies($cfgs, $root, sub { $_[0]->{dependencies} });
+	return App::Igor::Util::toposort_dependencies($cfgs, $root, sub { $_[0]->{dependencies} });
 }
 
 sub determine_effective_configuration {
@@ -138,22 +138,22 @@ sub determine_effective_configuration {
 	} reverse @cfgnames;
 
 	my $configmergers = {
-		factors      => \&Igor::Merge::list_concat,
-		packages     => \&Igor::Merge::uniq_list_merge,
-		dependencies => \&Igor::Merge::uniq_list_merge,
+		factors      => \&App::Igor::Merge::list_concat,
+		packages     => \&App::Igor::Merge::uniq_list_merge,
+		dependencies => \&App::Igor::Merge::uniq_list_merge,
 		# repositories and collections use the default hash merger, same for facts
 	};
 	my $mergers = $self->defaults->{mergers} // {};
-	my $cm = Igor::Util::traverse_nested_hash($self->defaults->{mergeconfig} // {}, sub {
+	my $cm = App::Igor::Util::traverse_nested_hash($self->defaults->{mergeconfig} // {}, sub {
 			my ($name, $bc) = @_;
 			unless(exists $mergers->{$name}) {
 				die "Configured merger '$name' for path @{$bc} is not defined";
 			}
-			Igor::Util::file_to_coderef($mergers->{$name});
+			App::Igor::Util::file_to_coderef($mergers->{$name});
 		});
 	$configmergers->{$_} = $cm->{$_} for (keys %$cm);
 
-	my $merger = Igor::Merge->new(
+	my $merger = App::Igor::Merge->new(
 		mergers => $configmergers,
 	);
 
@@ -257,7 +257,7 @@ sub expand_packages {
 		} @packages;
 }
 
-# Given a list of packages (as Igor::Package) get all inactive packages
+# Given a list of packages (as App::Igor::Package) get all inactive packages
 sub complement_packages {
 	my ($self, $packages) = @_;
 
@@ -288,7 +288,7 @@ sub build_package_db {
 	my %packagedb = ();
 
 	for my $name (sort keys %$repositories) {
-		my $repo = Igor::Repository->new(id => $name, directory => $repositories->{$name}->{path}, config => $config);
+		my $repo = App::Igor::Repository->new(id => $name, directory => $repositories->{$name}->{path}, config => $config);
 		$repos{$name} = $repo;
 
 		for my $pkg (keys %{$repo->packagedb}) {
@@ -313,14 +313,14 @@ sub build_collection_context {
 
 	for my $coll (keys %$collections) {
 		$ctx->{collections}->{$coll} = {};
-		my $pkg = Igor::Package->new(basedir => $self->file, repository => undef, id => "collection_$coll");
+		my $pkg = App::Igor::Package->new(basedir => $self->file, repository => undef, id => "collection_$coll");
 		my $merger;
 		if (defined $collections->{$coll}->{merger}) {
 			my $mergerid   = $collections->{$coll}->{merger};
 			my $mergerfile = $configuration->{mergers}->{$mergerid};
 			die "No such merger defined: $mergerid" unless defined $mergerfile;
 			try {
-				$merger = Igor::Util::file_to_coderef($mergerfile);
+				$merger = App::Igor::Util::file_to_coderef($mergerfile);
 			} catch {
 				die "Error while processing collection '$coll': cannot create merger from $mergerfile: $_";
 			}
@@ -330,10 +330,10 @@ sub build_collection_context {
 				join('', map {$hash->{$_}} @keys)
 			};
 		}
-		push @transactions, Igor::Operation::EmitCollection->new(
+		push @transactions, App::Igor::Operation::EmitCollection->new(
 			collection => $coll,
 			merger => $merger,
-			sink => Igor::Sink::File->new( path => $collections->{$coll}->{destination}
+			sink => App::Igor::Sink::File->new( path => $collections->{$coll}->{destination}
 				                         , id => $pkg
 				                         , perm => $collections->{$coll}->{perm}
 									     ),
@@ -350,7 +350,7 @@ sub build_factor_transactions {
 
 	my @transactions;
 	for my $factor (@$factors) {
-		push @transactions, Igor::Operation::RunFactor->new(%$factor, order => 1);
+		push @transactions, App::Igor::Operation::RunFactor->new(%$factor, order => 1);
 	}
 
 	return \@transactions;

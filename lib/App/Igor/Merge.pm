@@ -1,4 +1,4 @@
-package Igor::Merge;
+package App::Igor::Merge;
 use warnings;
 use strict;
 

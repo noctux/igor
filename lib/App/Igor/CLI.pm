@@ -1,4 +1,4 @@
-package Igor::CLI;
+package App::Igor::CLI;
 
 use warnings;
 use strict;
@@ -6,10 +6,10 @@ use strict;
 use Const::Fast;
 use Data::Dumper;
 use Getopt::Long::Subcommand;
-use Igor::Config;
-use Igor::Repository;
-use Igor::Package;
-use Igor::Util qw(colored);
+use App::Igor::Config;
+use App::Igor::Repository;
+use App::Igor::Package;
+use App::Igor::Util qw(colored);
 use Try::Tiny;
 use Pod::Usage;
 
@@ -59,7 +59,7 @@ sub find_task {
 	my $task = $opts->{task};
 	return $task if defined $task;
 
-	my $identifier = Igor::Util::guess_identifier;
+	my $identifier = App::Igor::Util::guess_identifier;
 	my @tasks = grep {
 		my $re = $cfgs->{$_}->{pattern} // $_;
 		$identifier =~ /$re/
@@ -175,7 +175,7 @@ sub main {
 	$Log::ger::Output::Screen::colors{20} = "\e[0;31m";
 
 	# Parse the configfile
-	my $config = Igor::Config::from_file($opts->{configfile});
+	my $config = App::Igor::Config::from_file($opts->{configfile});
 
 	# Determine the task to run
 	my $task = find_task($opts, $config->configurations);

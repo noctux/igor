@@ -4,12 +4,12 @@ use warnings;
 BEGIN { unshift @INC, './lib'; }
 
 use Test::More tests => 5;
-use Igor::Types;
+use App::Igor::Types;
 use Type::Coercion;
 use Types::Standard qw(ArrayRef Dict);
 use Test::Exception;
 
-my $type = $Igor::Types::PathTiny;
+my $type = $App::Igor::Types::PathTiny;
 
 # Basic Coercion
 my $val = $type->assert_coerce(".");
@@ -21,8 +21,8 @@ dies_ok {
 } "Invalid coercion";
 
 # Nested coercion
-my $dict = Dict [ a => $Igor::Types::PathTiny
-				, b => ArrayRef[$Igor::Types::PathTiny]
+my $dict = Dict [ a => $App::Igor::Types::PathTiny
+				, b => ArrayRef[$App::Igor::Types::PathTiny]
 			    ];
 my $hash = {
 	a => ".",

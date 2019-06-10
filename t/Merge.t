@@ -6,24 +6,24 @@ BEGIN { unshift @INC, './lib'; }
 use Test::More tests => 5;
 
 # Test: Require works
-use Igor::Merge;
+use App::Igor::Merge;
 
 { # Test: Empty hashes
-	my $merger = Igor::Merge->new();
+	my $merger = App::Igor::Merge->new();
 
 	my $res = $merger->merge({}, {});
 	is_deeply($res, {}, "Empty hashes");
 }
 
 { # Test: Basic overlays
-	my $merger = Igor::Merge->new();
+	my $merger = App::Igor::Merge->new();
 
 	my $res = $merger->merge({a => 1,}, {a => 2});
 	is($res->{a}, 2, "Basic overlaystructure");
 }
 
 { # Test: Complex recursive merging
-	my $merger = Igor::Merge->new();
+	my $merger = App::Igor::Merge->new();
 
 	my $h1 = {
 		scalar => 1,
@@ -63,7 +63,7 @@ use Igor::Merge;
 }
 
 { # Test: Cloning
-	my $merger = Igor::Merge->new(clone => 1);
+	my $merger = App::Igor::Merge->new(clone => 1);
 
 	my $a = { a => 1};
 	my $b = { a => 2};
@@ -74,15 +74,15 @@ use Igor::Merge;
 }
 
 { # Test: Custom mergers
-	my $merger = Igor::Merge->new(
+	my $merger = App::Igor::Merge->new(
 		mergers => {
-			arrayref     => \&Igor::Merge::list_concat,
-			arrayrefex1  => \&Igor::Merge::list_concat,
-			arrayrefex2  => \&Igor::Merge::list_concat,
+			arrayref     => \&App::Igor::Merge::list_concat,
+			arrayrefex1  => \&App::Igor::Merge::list_concat,
+			arrayrefex2  => \&App::Igor::Merge::list_concat,
 			scalar       => sub {
 				my ($a, $b) = @_; return $a + $b;
 			},
-			arrayrefuniq => \&Igor::Merge::uniq_list_merge,
+			arrayrefuniq => \&App::Igor::Merge::uniq_list_merge,
 			nested       => {
 				val => sub {
 					my ($a, $b) = @_; return $a + $b;

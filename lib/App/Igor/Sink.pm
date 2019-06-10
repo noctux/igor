@@ -1,6 +1,6 @@
 use strict;
 
-package Igor::Sink {
+package App::Igor::Sink {
 use strict;
 use warnings;
 
@@ -14,7 +14,7 @@ sub diff     { die "Not implemented"; }
 }
 
 
-package Igor::Pipeline::Type {
+package App::Igor::Pipeline::Type {
 use strict;
 
 use constant {
@@ -28,11 +28,11 @@ use constant {
 };
 }
 
-package Igor::Sink::File {
+package App::Igor::Sink::File {
 use strict;
 use warnings;
 
-use parent 'Igor::Sink';
+use parent 'App::Igor::Sink';
 use Class::Tiny qw(path), {
 	perm => undef,
 	operation => undef,
@@ -41,11 +41,11 @@ use Class::Tiny qw(path), {
 use Const::Fast;
 use Data::Dumper;
 use Log::ger;
-use Igor::Diff ();
+use App::Igor::Diff ();
 use Try::Tiny;
 use Fcntl ':mode';
 
-const my @REQUIRES => (Igor::Pipeline::Type::FILE, Igor::Pipeline::Type::TEXT);
+const my @REQUIRES => (App::Igor::Pipeline::Type::FILE, App::Igor::Pipeline::Type::TEXT);
 
 sub BUILD {
 	my ($self, $args) = @_;
@@ -62,7 +62,7 @@ sub prepare_for_copy {
 	my ($self, $typeref, $dataref) = @_;
 
 	if (defined $self->operation && $self->operation eq "copy") {
-		$$typeref = Igor::Pipeline::Type::TEXT;
+		$$typeref = App::Igor::Pipeline::Type::TEXT;
 		# Text backend: Pass by content
 		die "@{[$$dataref->stringify]}: Is no regular file\n" .
 		    "Only operation 'symlink' with regular file targets (no collections) are supported for directories" unless -f $$dataref;
@@ -77,13 +77,13 @@ sub check {
 
 	prepare_for_copy($self, \$type, \$data);
 
-	if ($type == Igor::Pipeline::Type::TEXT) {
+	if ($type == App::Igor::Pipeline::Type::TEXT) {
 		try {
 			$changeneeded = $self->path->slurp_utf8() ne $data;
 		} catch {
 			$changeneeded = 1;
 		};
-	} elsif ($type == Igor::Pipeline::Type::FILE) {
+	} elsif ($type == App::Igor::Pipeline::Type::FILE) {
 		try {
 			$changeneeded = not (S_ISLNK($self->path->lstat->mode) && ($self->path->realpath eq $data->realpath));
 		} catch {
@@ -102,7 +102,7 @@ sub check {
 sub emit {
 	my ($self, $type, $data) = @_;
 
-	return Igor::Pipeline::Type::UNCHANGED unless $self->check($type, $data);
+	return App::Igor::Pipeline::Type::UNCHANGED unless $self->check($type, $data);
 
 	prepare_for_copy($self, \$type, \$data);
 
@@ -111,7 +111,7 @@ sub emit {
 		$self->path->parent->mkpath;
 	}
 
-	if ($type == Igor::Pipeline::Type::TEXT) {
+	if ($type == App::Igor::Pipeline::Type::TEXT) {
 		log_trace "spew(@{[$self->path]}, " . Dumper($data) . ")";
 
 		# write the data
@@ -121,7 +121,7 @@ sub emit {
 		if (defined $self->perm) {
 			$self->path->chmod($self->perm);
 		}
-	} elsif ($type == Igor::Pipeline::Type::FILE) {
+	} elsif ($type == App::Igor::Pipeline::Type::FILE) {
 		my $dest = $self->path->absolute;
 
 		# Remove the link if it exists
@@ -133,7 +133,7 @@ sub emit {
 		die "Unsupported type \"$type\" at \"" . __PACKAGE__ . "\" when emitting file @{[$self->path]}";
 	}
 
-	return Igor::Pipeline::Type::CHANGED;
+	return App::Igor::Pipeline::Type::CHANGED;
 }
 
 sub diff {
@@ -142,15 +142,15 @@ sub diff {
 	prepare_for_copy($self, \$type, \$data);
 
 	my $diff;
-	if ($type == Igor::Pipeline::Type::TEXT) {
+	if ($type == App::Igor::Pipeline::Type::TEXT) {
 		try {
-			$diff = Igor::Diff::diff \$data, $self->path->stringify, \%opts;
+			$diff = App::Igor::Diff::diff \$data, $self->path->stringify, \%opts;
 		} catch {
 			$diff = $_;
 		}
-	} elsif ($type == Igor::Pipeline::Type::FILE) {
+	} elsif ($type == App::Igor::Pipeline::Type::FILE) {
 		try {
-			$diff = Igor::Diff::diff $data->stringify, $self->path->stringify, \%opts;
+			$diff = App::Igor::Diff::diff $data->stringify, $self->path->stringify, \%opts;
 		} catch {
 			$diff = $_;
 		}
@@ -174,7 +174,7 @@ sub stringify {
 }
 }
 
-package Igor::Sink::Collection {
+package App::Igor::Sink::Collection {
 use strict;
 use warnings;
 
@@ -182,7 +182,7 @@ use warnings;
 # will later be used to fuse the collection. Therefore check, emit and diff
 # are subs, only crating a suitable ctx for the actual ops.
 
-use parent 'Igor::Sink';
+use parent 'App::Igor::Sink';
 use Class::Tiny qw(collection id), {
 	checked => 0,
 };
@@ -192,7 +192,7 @@ use Data::Dumper;
 use Log::ger;
 use Text::Diff ();
 
-const my @REQUIRES => (Igor::Pipeline::Type::TEXT);
+const my @REQUIRES => (App::Igor::Pipeline::Type::TEXT);
 
 sub requires { \@REQUIRES }
 
@@ -204,7 +204,7 @@ sub check {
 
 	# Sanity-check: Input type
 	die   "Unsupported type \"$type\" at \"@{[__PACKAGE__]}\" "
-	    . "when emitting to collection @{[$self->collection]} for @{[$self->id]}" if Igor::Pipeline::Type::TEXT != $type;
+	    . "when emitting to collection @{[$self->collection]} for @{[$self->id]}" if App::Igor::Pipeline::Type::TEXT != $type;
 
 	# Ensure that collection exists
 	die "Unknown collection '@{[$self->collection]}' for package '@{[$self->id]}'"
@@ -229,7 +229,7 @@ sub emit {
 	# Sets $ctx
 	$self->check($type, $data, $ctx);
 
-	return Igor::Pipeline::Type::UNCHANGED;
+	return App::Igor::Pipeline::Type::UNCHANGED;
 }
 
 sub diff {

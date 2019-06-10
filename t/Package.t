@@ -11,7 +11,7 @@ use Test::MockModule;
 use Test::MockObject;
 use Test::Exception;
 
-use Igor::Package;
+use App::Igor::Package;
 
 { # Test from_file
 
@@ -46,7 +46,7 @@ EOF
 	my $repo = Test::MockObject->new()
 	                           ->set_always('id', 'main');
 
-	my $res = Igor::Package::from_file($fh->filename, $repo);
+	my $res = App::Igor::Package::from_file($fh->filename, $repo);
 
 	my $expected = {
 		dependencies => ["vim", "bash"],
@@ -79,18 +79,18 @@ EOF
 	my $repo = Test::MockObject->new()
 	                           ->set_always('id', 'main');
 	dies_ok {
-		Igor::Package::from_hash({ invalid => 42 }, path('main/pkg1'), $repo);
+		App::Igor::Package::from_hash({ invalid => 42 }, path('main/pkg1'), $repo);
 	} "Coerce: invlid entry";
 
 	dies_ok {
-		Igor::Package::from_hash({ files => {source => './file'} }, path('main/pkg1'), $repo);
+		App::Igor::Package::from_hash({ files => {source => './file'} }, path('main/pkg1'), $repo);
 	} "Coerce: missing entry";
 }
 
 { # Test qname
 	my $repo = Test::MockObject->new()
 	                           ->set_always('id', 'main');
-	my $pkg1 = Igor::Package::from_hash({}, path('main/pkg1'), $repo);
+	my $pkg1 = App::Igor::Package::from_hash({}, path('main/pkg1'), $repo);
 	ok($pkg1->qname eq 'main/pkg1', "qname");
 }
 

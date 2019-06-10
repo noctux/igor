@@ -9,7 +9,7 @@ use IO::Handle;
 use Test::MockModule;
 use Test::Exception;
 
-use Igor::Util;
+use App::Igor::Util;
 
 { # Test read_toml
 
@@ -52,7 +52,7 @@ hosts = [
 ]
 EOF
 	$fh->flush();
-	my $res = Igor::Util::read_toml($fh->filename);
+	my $res = App::Igor::Util::read_toml($fh->filename);
 
 	my $expected = {
 		title => "TOML Example",
@@ -101,7 +101,7 @@ sub arrayrefeq {
 		b => {deps => ['d']},
 		c => {deps => ['d']},
 	};
-	my @order = Igor::Util::toposort_dependencies($graph, 'a', sub { return $_[0]->{deps}; });
+	my @order = App::Igor::Util::toposort_dependencies($graph, 'a', sub { return $_[0]->{deps}; });
 
 
 	ok(   arrayrefeq(\@order, [qw(a b c d)])
@@ -118,7 +118,7 @@ sub arrayrefeq {
 
 	;
 	dies_ok {
-		Igor::Util::toposort_dependencies($graph, 'a', sub { return $_[0]->{deps}; });
+		App::Igor::Util::toposort_dependencies($graph, 'a', sub { return $_[0]->{deps}; });
 	} "toposort_dependencies: die on cyclic input";
 }
 
@@ -130,7 +130,7 @@ sub arrayrefeq {
 	$sys_hostname->redefine('hostname', sub { return 'sys'; });
 
 	# Fqdn has priority over the pure hostname
-	my $identifier = Igor::Util::guess_identifier();
+	my $identifier = App::Igor::Util::guess_identifier();
 
 	ok($identifier eq "fqdn", "guess_identifier: fqdn has priority");
 }
@@ -143,6 +143,6 @@ sub arrayrefeq {
 	my $sys_hostname = Test::MockModule->new('Sys::Hostname');
 	$sys_hostname->redefine('hostname', sub { return 'sys'; });
 
-	my $identifier = Igor::Util::guess_identifier();
+	my $identifier = App::Igor::Util::guess_identifier();
 	ok($identifier eq "sys", "guess_identifier: fallback");
 }

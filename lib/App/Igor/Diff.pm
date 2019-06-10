@@ -1,15 +1,15 @@
-package Igor::Diff;
+package App::Igor::Diff;
 use Exporter 'import';
 @EXPORT = qw(diff);
 
 use warnings;
 use strict;
 
-{ package Igor::Colordiff;
+{ package App::Igor::Colordiff;
 	use warnings;
 	use strict;
 
-	use Igor::Util qw(colored);
+	use App::Igor::Util qw(colored);
 	use Text::Diff;
 	our @ISA = qw(Text::Diff::Unified);
 
@@ -47,7 +47,7 @@ sub diff {
 	my ($x, $y, $opts) = @_;
 
 	# Set style, allowing overrides
-	$opts->{STYLE} //= 'Igor::Colordiff';
+	$opts->{STYLE} //= 'App::Igor::Colordiff';
 
 	return Text::Diff::diff($x, $y, $opts);
 }

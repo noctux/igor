@@ -23,10 +23,10 @@ use version; our $VERSION = version->declare("v0.1.0");
 
 BEGIN { unshift @INC, './lib'; }
 
-use Igor::CLI;
+use App::Igor::CLI;
 
 # Simply dispatch, wuhu
-Igor::CLI::main(@ARGV);
+App::Igor::CLI::main(@ARGV);
 
 __END__
 
@@ -558,7 +558,7 @@ Of course, you can call utility functions from igors codebase where useful:
 
 	sub {
 		# Cheating, actually we simply call the default hash merging strategy... :)
-		Igor::Merge::uniq_list_merge(@_)
+		App::Igor::Merge::uniq_list_merge(@_)
 	}
 
 =item 2.
@@ -782,7 +782,7 @@ standalone.
 
 =head3 DESGIN/CODE STRUCTURE
 
-C<Igor::CLI::main> in F<lib/Igor/CLI.pl> constitutes igor's entrypoint and
+C<App::Igor::CLI::main> in F<lib/Igor/CLI.pl> constitutes igor's entrypoint and
 outlines the overall execution flow.
 
 The main steps are:
@@ -834,7 +834,7 @@ construction in a lightweight fashion.
 =item C<Log::ger>
 
 Used internally for logging. Provides C<log_(trace|debug|info|warn|error)>
-functions to log on different verbosity levels. C<Igor::Util::colored> can be
+functions to log on different verbosity levels. C<App::Igor::Util::colored> can be
 used to modify the text printed to the terminal (e.g. C<log_info colored(['bold
 blue'] "Text")> will print C<Text> to stdout in bold blue).
 

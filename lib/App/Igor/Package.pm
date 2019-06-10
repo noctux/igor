@@ -1,4 +1,4 @@
-package Igor::Package;
+package App::Igor::Package;
 use strict;
 use warnings;
 
@@ -18,8 +18,8 @@ use Try::Tiny;
 use Type::Tiny;
 use Types::Standard qw(Any ArrayRef Dict HashRef Optional Str);
 
-use Igor::Operation;
-use Igor::Util;
+use App::Igor::Operation;
+use App::Igor::Util;
 
 # Config file Schemata for TOML validation
 my $commandschema  = Str | ArrayRef[Str];
@@ -74,7 +74,7 @@ sub from_file {
 	my ($filepath, $repository) = @_;
 
 	# Parse and read the config file
-	my $conf = Igor::Util::read_toml($filepath);
+	my $conf = App::Igor::Util::read_toml($filepath);
 	my $packagedir = path($filepath)->parent;
 
 	return from_hash($conf, $packagedir, $repository);
@@ -84,7 +84,7 @@ sub from_perl_file {
 	my ($filepath, $repository, $config) = @_;
 
 	my $packagedir = path($filepath)->parent;
-	my $packagesub = Igor::Util::file_to_coderef($filepath);
+	my $packagesub = App::Igor::Util::file_to_coderef($filepath);
 	my $conf;
 	{ # execute this from the packageidr
 		my $dir = pushd($packagedir);
@@ -103,7 +103,7 @@ sub from_hash {
 		die "Validating package-configuration at $basedir failed:\n$_";
 	};
 
-	return Igor::Package->new(basedir => $basedir
+	return App::Igor::Package->new(basedir => $basedir
 		, repository => $repository
 		, id => $basedir->basename
 		, %{$conf});
@@ -125,9 +125,9 @@ sub determine_sink {
 	 my ($file, $id) = @_;
 
 	if (defined($file->{dest})) {
-		return Igor::Sink::File->new(path => $file->{dest}, id => $id, perm => $file->{perm}, operation => $file->{operation});
+		return App::Igor::Sink::File->new(path => $file->{dest}, id => $id, perm => $file->{perm}, operation => $file->{operation});
 	} elsif (defined($file->{collection})) {
-		return Igor::Sink::Collection->new(collection => $file->{collection}, id => $id);
+		return App::Igor::Sink::Collection->new(collection => $file->{collection}, id => $id);
 	} else {
 		die "Failed to determine sink for file: " . Dumper($file);
 	}
@@ -139,7 +139,7 @@ sub to_transactions {
 
 	# Run precommands
 	for my $cmd (@{$self->precmds}) {
-		push @transactions, Igor::Operation::RunCommand->new(
+		push @transactions, App::Igor::Operation::RunCommand->new(
 			package => $self,
 			command => $cmd,
 			basedir => $self->basedir,
@@ -152,7 +152,7 @@ sub to_transactions {
 		my $source = path("@{[$self->basedir]}/$file->{source}");
 		# File mode bits: 07777 -> parts to copy
 		$file->{perm} //= $source->stat->mode & 07777;
-		push @transactions, Igor::Operation::FileTransfer->new(
+		push @transactions, App::Igor::Operation::FileTransfer->new(
 			package => $self,
 			source  => $source,
 			sink    => determine_sink($file, $self->qname),
@@ -162,7 +162,7 @@ sub to_transactions {
 
 	# Run the templates
 	for my $tmpl (@{$self->templates}) {
-		push @transactions, Igor::Operation::Template->new(
+		push @transactions, App::Igor::Operation::Template->new(
 			package    => $self,
 			template   => path("@{[$self->basedir]}/$tmpl->{source}"),
 			sink       => determine_sink($tmpl, $self->qname),
@@ -173,7 +173,7 @@ sub to_transactions {
 
 	# Now run the postcommands
 	for my $cmd (@{$self->postcmds}) {
-		push @transactions, Igor::Operation::RunCommand->new(
+		push @transactions, App::Igor::Operation::RunCommand->new(
 			package => $self,
 			command => $cmd,
 			basedir => $self->basedir,
@@ -204,7 +204,7 @@ sub gc {
 	my ($self) = @_;
 
 	my @files     = map { $_->{dest} } @{$self->files}, @{$self->templates};
-	my @artifacts = map { Igor::Util::glob($_) } @{$self->artifacts};
+	my @artifacts = map { App::Igor::Util::glob($_) } @{$self->artifacts};
 
 	return map {
 		path($_)->realpath->stringify

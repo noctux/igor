@@ -1,4 +1,4 @@
-package Igor::Types;
+package App::Igor::Types;
 use warnings;
 use strict;
 

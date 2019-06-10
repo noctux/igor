@@ -1,10 +1,10 @@
-package Igor::Operation;
+package App::Igor::Operation;
 use strict;
 use warnings;
 
 use Class::Tiny qw(package order);
 use Data::Dumper;
-use Igor::Sink;
+use App::Igor::Sink;
 
 sub prepare { die 'Not implemented'; }
 sub check   { die 'Not implemented'; }
@@ -25,10 +25,10 @@ sub select_backend {
 sub prepare_file_for_backend {
 	my ($self, $file, $backend) = @_;
 
-	if ($backend == Igor::Pipeline::Type::FILE) {
+	if ($backend == App::Igor::Pipeline::Type::FILE) {
 		# File backend: Simply pass the file
 		return $file->absolute;
-	} elsif ($backend == Igor::Pipeline::Type::TEXT) {
+	} elsif ($backend == App::Igor::Pipeline::Type::TEXT) {
 		# Text backend: Pass by content
 		die "@{[$file->stringify]}: Is no regular file\n" .
 		    "Only operation 'symlink' with regular file targets (no collections)" unless -f $file;
@@ -39,18 +39,18 @@ sub prepare_file_for_backend {
 }
 
 
-package Igor::Operation::Template;
+package App::Igor::Operation::Template;
 use strict;
 use warnings;
 
-use Igor::Sink;
+use App::Igor::Sink;
 
 use Class::Tiny qw(template sink), {
 	content  => undef,
 	delimiters => undef,
-	backends => [Igor::Pipeline::Type::TEXT]
+	backends => [App::Igor::Pipeline::Type::TEXT]
 };
-use parent 'Igor::Operation';
+use parent 'App::Igor::Operation';
 
 use Const::Fast;
 use Data::Dumper;
@@ -200,7 +200,7 @@ sub apply {
 		$self->prepare($ctx);
 	}
 
-	return $self->sink->emit(Igor::Pipeline::Type::TEXT, $self->content, $ctx);
+	return $self->sink->emit(App::Igor::Pipeline::Type::TEXT, $self->content, $ctx);
 }
 
 sub log {
@@ -216,7 +216,7 @@ sub check {
 		log_warn "@{[ref($self)]}: prepare not called for template @{[$self->template]} when checking\n";
 	}
 
-	return $self->sink->check(Igor::Pipeline::Type::TEXT, $self->content, $ctx);
+	return $self->sink->check(App::Igor::Pipeline::Type::TEXT, $self->content, $ctx);
 }
 
 sub diff {
@@ -226,23 +226,23 @@ sub diff {
 		log_warn "@{[ref($self)]}: prepare not called for template @{[$self->template]} when diffing\n";
 	}
 
-	return $self->sink->diff( Igor::Pipeline::Type::TEXT, $self->content, $ctx
+	return $self->sink->diff( App::Igor::Pipeline::Type::TEXT, $self->content, $ctx
 	                        , FILENAME_A => $self->template
 							, MTIME_A => $self->template->stat->mtime());
 }
 
-package Igor::Operation::FileTransfer;
+package App::Igor::Operation::FileTransfer;
 use strict;
 use warnings;
 
-use Igor::Sink;
+use App::Igor::Sink;
 
 use Class::Tiny qw(source sink), {
-	backends => [Igor::Pipeline::Type::FILE, Igor::Pipeline::Type::TEXT],
+	backends => [App::Igor::Pipeline::Type::FILE, App::Igor::Pipeline::Type::TEXT],
 	data => undef,
 	backend => undef,
 };
-use parent 'Igor::Operation';
+use parent 'App::Igor::Operation';
 
 use Log::ger;
 use Time::localtime;
@@ -290,11 +290,11 @@ sub log {
 }
 
 
-package Igor::Operation::EmitCollection;
+package App::Igor::Operation::EmitCollection;
 use strict;
 use warnings;
 
-use parent 'Igor::Operation';
+use parent 'App::Igor::Operation';
 use Class::Tiny qw(collection merger sink), {
 	data => undef,
 };
@@ -319,20 +319,20 @@ sub check   {
 	log_trace "Merged collection '@{[$self->collection]}': $data";
 	$self->data($data);
 
-	return $self->sink->check(Igor::Pipeline::Type::TEXT, $self->data, $ctx);
+	return $self->sink->check(App::Igor::Pipeline::Type::TEXT, $self->data, $ctx);
 }
 
 sub apply   {
 	my ($self, $ctx) = @_;
 
 	log_trace "Emitting collection '@{[$self->sink->path]}': @{[$self->data]}";
-	return $self->sink->emit(Igor::Pipeline::Type::TEXT, $self->data, $ctx);
+	return $self->sink->emit(App::Igor::Pipeline::Type::TEXT, $self->data, $ctx);
 }
 
 sub diff {
 	my ($self, $ctx) = @_;
 
-	return $self->sink->diff( Igor::Pipeline::Type::TEXT, $self->data, $ctx
+	return $self->sink->diff( App::Igor::Pipeline::Type::TEXT, $self->data, $ctx
 	                        , FILENAME_A => "Collection " . $self->collection
 	                        , MTIME_A    => time());
 }
@@ -343,17 +343,17 @@ sub log {
 	log_info "Emitting  collection '@{[$self->sink->stringify]}'";
 }
 
-package Igor::Operation::RunCommand;
+package App::Igor::Operation::RunCommand;
 use strict;
 use warnings;
 
-use Igor::Sink;
+use App::Igor::Sink;
 
 use Class::Tiny qw(command), {
 	basedir  => "",
 	backends => [],
 };
-use parent 'Igor::Operation';
+use parent 'App::Igor::Operation';
 
 use Cwd;
 use Log::ger;
@@ -427,16 +427,16 @@ sub diff {
 	return '';
 }
 
-package Igor::Operation::RunFactor;
+package App::Igor::Operation::RunFactor;
 use strict;
 use warnings;
 
 use Class::Tiny qw(path), {
 	type  => "perl",
 };
-use parent 'Igor::Operation';
+use parent 'App::Igor::Operation';
 
-use Igor::Merge;
+use App::Igor::Merge;
 use String::ShellQuote;
 use TOML;
 use TOML::Parser;
@@ -449,7 +449,7 @@ sub prepare {
 	my $facts;
 	if ($self->type eq 'perl') {
 		log_debug "Executing file '@{[$self->path]}' as perl-factor";
-		my $factor = Igor::Util::file_to_coderef($self->path);
+		my $factor = App::Igor::Util::file_to_coderef($self->path);
 		$facts = $factor->();
 	} elsif ($self->type eq 'script') {
 		log_debug "Executing file '@{[$self->path]}' as script-factor";
@@ -481,7 +481,7 @@ sub prepare {
 
 	# Use the HashMerger to merge the automatic variables
 	my $auto = $ctx->{automatic} // {};
-	my $merger = Igor::Merge->new();
+	my $merger = App::Igor::Merge->new();
 	$ctx->{automatic} = $merger->merge($auto, $facts);
 	1;
 }

@@ -1,4 +1,4 @@
-package Igor::Repository;
+package App::Igor::Repository;
 use strict;
 use warnings;
 
@@ -6,8 +6,8 @@ use Class::Tiny qw(id directory), {
 	packagedb => {}
 };
 
-use Igor::Package;
-use Igor::Util;
+use App::Igor::Package;
+use App::Igor::Util;
 use Path::Tiny;
 use Data::Dumper;
 use Log::ger;
@@ -27,9 +27,9 @@ sub collect_packages {
 
 			my $package;
 			if ((my $packagedesc = $path->child("package.toml"))->is_file) {
-				$package = Igor::Package::from_file($packagedesc, $self);
+				$package = App::Igor::Package::from_file($packagedesc, $self);
 			} elsif ((my $packagedescpl = $path->child("package.pl"))->is_file) {
-				$package = Igor::Package::from_perl_file($packagedescpl, $self, $conf);
+				$package = App::Igor::Package::from_perl_file($packagedescpl, $self, $conf);
 				log_debug ("Evaluated @{[$packagedescpl->stringify]}: " . Dumper($package));
 			}
 			return unless defined($package);
@@ -44,7 +44,7 @@ sub collect_packages {
 sub dependency_graph {
 	my ($self) = @_;
 
-	my $g = Igor::Util::build_graph($self->packagedb, sub {
+	my $g = App::Igor::Util::build_graph($self->packagedb, sub {
 			$_[0]->dependencies;
 		});
 

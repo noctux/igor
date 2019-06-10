@@ -1,4 +1,4 @@
-package Igor::Util;
+package App::Igor::Util;
 use Exporter 'import';
 @EXPORT_OK = qw(colored);
 
