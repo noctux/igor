@@ -333,29 +333,6 @@ DISTRIBUTIONS
       IO::String 1.08
     requirements:
       ExtUtils::MakeMaker 0
-  IO-Tty-1.12
-    pathname: T/TO/TODDR/IO-Tty-1.12.tar.gz
-    provides:
-      IO::Pty 1.12
-      IO::Tty 1.12
-      IO::Tty::Constant undef
-    requirements:
-      ExtUtils::MakeMaker 0
-      Test::More 0
-  IPC-Run-0.96
-    pathname: T/TO/TODDR/IPC-Run-0.96.tar.gz
-    provides:
-      IPC::Run 0.96
-      IPC::Run::Debug 0.96
-      IPC::Run::IO 0.96
-      IPC::Run::Timer 0.96
-      IPC::Run::Win32Helper 0.96
-      IPC::Run::Win32IO 0.96
-      IPC::Run::Win32Pump 0.96
-    requirements:
-      ExtUtils::MakeMaker 0
-      IO::Pty 1.08
-      Test::More 0.47
   List-MoreUtils-0.428
     pathname: R/RE/REHSACK/List-MoreUtils-0.428.tar.gz
     provides:
@@ -609,14 +586,6 @@ DISTRIBUTIONS
       Test::Object 0.07
       Test::SubCalls 1.07
       perl 5.006
-  Package-Alias-0.13
-    pathname: J/JO/JOSHUA/Package-Alias-0.13.tar.gz
-    provides:
-      Package::Alias 0.13
-    requirements:
-      Carp 0
-      ExtUtils::MakeMaker 6.30
-      strict 0
   Params-Util-1.07
     pathname: A/AD/ADAMK/Params-Util-1.07.tar.gz
     provides:
