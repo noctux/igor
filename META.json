@@ -1,0 +1,106 @@
+{
+   "abstract" : "Because nothing makes you feel so as home like a good igor",
+   "author" : [
+      "Simon Schuster <git@rationality.eu>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Dist::Milla version v1.0.20, Dist::Zilla version 6.012, CPAN::Meta::Converter version 2.150010",
+   "license" : [
+      "agpl_3"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "App-Igor",
+   "no_index" : {
+      "directory" : [
+         "eg",
+         "examples",
+         "inc",
+         "share",
+         "t",
+         "xt"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "App::FatPacker" : "0",
+            "Perl::Strip" : "0"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "0"
+         }
+      },
+      "develop" : {
+         "requires" : {
+            "Dist::Milla" : "v1.0.20",
+            "Test::Pod" : "1.41"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Class::Tiny" : "0",
+            "Const::Fast" : "0",
+            "Cwd" : "0",
+            "Data::Diver" : "0",
+            "Data::Dumper" : "0",
+            "File::Which" : "0",
+            "File::pushd" : "0",
+            "Getopt::Long::Subcommand" : "0",
+            "Graph" : "0",
+            "Graph::Directed" : "0",
+            "List::Util" : "0",
+            "Log::ger" : "0",
+            "Log::ger::Output::Composite" : "0",
+            "Log::ger::Output::Screen" : "0",
+            "Net::Domain" : "0",
+            "Path::Tiny" : "0",
+            "Pod::Usage" : "0",
+            "Safe" : "0",
+            "Scalar::Util" : "0",
+            "Storable" : "0",
+            "String::ShellQuote" : "0",
+            "Sys::Hostname" : "0",
+            "TOML" : "0",
+            "Term::ANSIColor" : "0",
+            "Text::Diff" : "0",
+            "Text::Template" : "0",
+            "Try::Tiny" : "0",
+            "Type::Coercion" : "0",
+            "Type::Utils" : "0",
+            "Types::Standard" : "0",
+            "common::sense" : "0"
+         }
+      },
+      "test" : {
+         "requires" : {
+            "File::Temp" : "0",
+            "Test::Exception" : "0",
+            "Test::MockModule" : "0",
+            "Test::MockObject" : "0",
+            "Test::More" : "0"
+         }
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/noctux/igor/issues"
+      },
+      "homepage" : "https://github.com/noctux/igor",
+      "repository" : {
+         "type" : "git",
+         "url" : "https://github.com/noctux/igor.git",
+         "web" : "https://github.com/noctux/igor"
+      }
+   },
+   "version" : "v0.1.0",
+   "x_generated_by_perl" : "v5.30.0",
+   "x_serialization_backend" : "JSON::XS version 4.0",
+   "x_static_install" : 0
+}
+

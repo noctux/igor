@@ -2,3 +2,11 @@ local
 fatlib
 docker
 igor.packed.pl
+/App-Igor-*
+/.build
+/_build*
+/Build
+MYMETA.*
+!META.json
+/.prove
+Makefile.PL

@@ -1,3 +1,33 @@
+#!/usr/bin/env perl
+#
+# Igor - dotfile management for perl hackers
+# Copyright (C) 2017, 2018  Simon Schuster
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+use warnings;
+use strict;
+
+use version; our $VERSION = version->declare("v0.1.0");
+
+use App::Igor::CLI;
+
+# Simply dispatch, wuhu
+App::Igor::CLI::main(@ARGV);
+
+__END__
+
 =encoding utf8
 
 =head1 NAME
@@ -78,7 +108,7 @@ management. Therefore, instead of delivering all dotfiles at once, files are
 grouped into L<packages|/PACKAGES> which can be enabled for individual hosts
 selectively.
 
-L<Configurations|/CONFIGURATIONS> describe the set of packages that igor should
+L<Configurations|/CONFIGURATION> describe the set of packages that igor should
 activate. By providing L<facts|/facts> for the current environment, they further
 allow igor to customize the packages and their templates before deployment.
 
@@ -170,7 +200,7 @@ Here, C<profile> specifies the name of the collection. All content from all
 configured packages for said collection is collected, merged and then deployed
 on the host.
 The merge and deployment of named collections is configured in the
-L<top level configuration file/CONFIGURATION>.
+L<top level configuration file|/CONFIGURATION>.
 
 =item Templates
 
@@ -181,8 +211,8 @@ Example: On work computers, I want to set my work email address as the default
 git C<user.email>.
 
 To this end, the user can configure facts for any active configuration inside
-the L<top level configuration file/CONFIGURATION> or derive them automatically
-from the environments via L<factors|/FIXME>.
+the L<top level configuration file|/CONFIGURATION> or derive them automatically
+from the environments via L<factors|/Custom factors>.
 
 This information can then be interpolated into template files. The templating
 is based on L<Text::Template|https://metacpan.org/pod/Text::Template>, which
@@ -282,7 +312,7 @@ The return type C<$package> is a perl hash with keys analogous to the
 L<TOML|/TOML> components, for example:
 
 	my $package = {
-	  	files => [ { source => "./file", dest => "~/.myfile" }
+		files => [ { source => "./file", dest => "~/.myfile" }
 		         , { source => "./file2", dest => "~/.myfile", operation => 'copy' }
 		],
 		dependencies => ['otherpackage1', 'otherpackage2'],
@@ -394,7 +424,7 @@ components within the generated collection file F<env.sh>). Therefore,
 alternative merge strategies can be specified:
 
 	[configurations.config]
-	mergers = { envmerger = './mergers/envmerger.pm' }
+	mergers = { envmerger = './mergers/envmerger.pl' }
 	collections = {
 		'env.sh' = {
 			destination = '~/env.sh'
@@ -402,7 +432,7 @@ alternative merge strategies can be specified:
 		}
 	}
 
-For the contents of F<./mergers/envmerger.pm> see the section on
+For the contents of F<./mergers/envmerger.pl> see the section on
 L<custom mergers|/Custom collection mergers>
 
 =item Advanced features: C<dependencies>, C<factors>, C<mergers> and C<mergeconfigs>
@@ -509,24 +539,24 @@ preceding section. The declaration consists of three components.
 =item 1.
 
 Description of the modified merge strategy as a file (e.g.
-F<./mergers/althashmerger.pm>):
+F<./mergers/althashmerger.pl>):
 
 	sub {
-		my ($a, $b, $breadcrumbs) = @_;
-		# $a : left  (= less specific) fact value
-		# $b : right (= more specific) fact value
+		my ($l, $r, $breadcrumbs) = @_;
+		# $l : left  (= less specific) fact value
+		# $r : right (= more specific) fact value
 		# $breadcrumbs: arrayref describing the position in the facts hash,
 		#               e.g. ['dev', 'languages'] for key 'facts.dev.languages'
 
 		# Here, we simply take the more specific value (default behaviour)
-		return $b;
+		return $r;
 	}
 
 Of course, you can call utility functions from igors codebase where useful:
 
 	sub {
 		# Cheating, actually we simply call the default hash merging strategy... :)
-		Igor::Merge::uniq_list_merge(@_)
+		App::Igor::Merge::uniq_list_merge(@_)
 	}
 
 =item 2.
@@ -536,7 +566,7 @@ path to a file containing the code as a perl subroutine, which we symbolically
 bind to the name C<altmerger>:
 
 	[defaults]
-	mergers = { altmerger = './mergers/althashmerger.pm' }
+	mergers = { altmerger = './mergers/althashmerger.pl' }
 
 B<Note:> As fact-mergers are used to merge configurations, they can only be
 specified within the C<[defaults]> section.
@@ -564,10 +594,10 @@ it insed the main config file:
 
 	[configurations.config]
 	mergers = {
-		envmerger = './mergers/envmerger.pm',
+		envmerger = './mergers/envmerger.pl',
 	}
 
-Contents of F<./mergers/envmerger.pm>, which ensures that the contents of the
+Contents of F<./mergers/envmerger.pl>, which ensures that the contents of the
 C<main/base> package will be at the head of the merged configuration file:
 
 	sub {
@@ -606,7 +636,7 @@ array in the main configuration file:
 	[defaults]
 	factors = [
 		{path = './factors/executables.sh', type = 'script'},
-		{path = './factors/environment.pm', type = 'perl'},
+		{path = './factors/environment.pl', type = 'perl'},
 	]
 
 There are two types of factors:
@@ -642,13 +672,13 @@ L<TOML|https://github.com/toml-lang/toml>, e.g.:
 
 	[defaults]
 	factors = [
-		{path = './factors/environment.pm', type = 'perl'},
+		{path = './factors/environment.pl', type = 'perl'},
 	]
 
 Execute a perl sub and use the returned perl datastructure as automatically
 generated facts, e.g.:
 
-	# ./factors/environment.pm
+	# ./factors/environment.pl
 	sub {
 		# store the environment variables as an automatic fact in "automatic.env"
 		{env => \%ENV}
@@ -682,9 +712,9 @@ Here, a more complete example showing of the different features in TOML syntax.
 		}
 		factors = [
 			{path = './factors/executables.sh', type = 'script'},
-			{path = './factors/environment.pm', type = 'perl'},
+			{path = './factors/environment.pl', type = 'perl'},
 		]
-		mergers = { altmerger = './mergers/althashmerger.pm' }
+		mergers = { altmerger = './mergers/althashmerger.pl' }
 		mergeconfig = { facts = { recursive = {hell = 'altmerger' } } }
 
 	[configurations.interactive]
@@ -706,7 +736,7 @@ Here, a more complete example showing of the different features in TOML syntax.
 			recursive = {hell = ['hades', 'hel']},
 		}
 		mergers = {
-			envmerger = './mergers/envmerger.pm',
+			envmerger = './mergers/envmerger.pl',
 		}
 		collections = {
 			'env.sh' = {
@@ -741,16 +771,16 @@ page or build it yourself:
 	# Install all dependencies locally to ./local using carton
 	# See DEVELOPMENT SETUP below for details
 	carton install
-	./bin/fatpack.sh
+	./maint/fatpack.sh
 
-The freshly built, fatpacked script can then be found in F<./igor.packed.pl>
-and be executed standalone.
+The fatpacked script can be found in F<./igor.fatpacked.pl> and be executed
+standalone.
 
 =head2 HACKING
 
 =head3 DESGIN/CODE STRUCTURE
 
-C<Igor::CLI::main> in F<lib/Igor/CLI.pm> constitutes igor's entrypoint and
+C<App::Igor::CLI::main> in F<lib/Igor/CLI.pl> constitutes igor's entrypoint and
 outlines the overall execution flow.
 
 The main steps are:
@@ -802,7 +832,7 @@ construction in a lightweight fashion.
 =item C<Log::ger>
 
 Used internally for logging. Provides C<log_(trace|debug|info|warn|error)>
-functions to log on different verbosity levels. C<Igor::Util::colored> can be
+functions to log on different verbosity levels. C<App::Igor::Util::colored> can be
 used to modify the text printed to the terminal (e.g. C<log_info colored(['bold
 blue'] "Text")> will print C<Text> to stdout in bold blue).
 
@@ -826,10 +856,12 @@ data structures with the expected format.
 Igor provides a F<cartonfile> to declare and manage its library dependencies.
 Therefore L<carton|https://metacpan.org/release/carton> can be used to install
 the required nonstandard libraries:
+
 	carton install
 
 Carton can then be used to execute C<igor> with those locally installed libs:
-	carton exec -- ./igor.pl --help
+
+	carton exec -- ./scripts/igor.pl --help
 
 =head4 Running tests
 
@@ -842,27 +874,51 @@ an integration test case.
 B<WARNING:> Running the following command on your development machine might
 overwrite configuration files on the host. Only execute them in a virtual
 machine or container.
-	igor.pl apply -vv --dry-run -c ./test/test_minimal/config.toml --task computer
+	./scripts/igor.pl apply -vv --dry-run -c ./test/test_minimal/config.toml --task computer
 
 To ease development, two scripts are provided to create and manage docker
 containers for igor development.
-F<bin/builddocker.pl> will generate a set of dockerfiles in the folder
+F<maint/builddocker.pl> will generate a set of dockerfiles in the folder
 F<./docker> for minimal configurations of various operating systems configured
-in F<bin/builddocker.pl> and builds the corresponding images.
-F<bin/devup.sh> will start the archlinux-image and mount the igor-folder into
+in F<maint/builddocker.pl> and builds the corresponding images.
+F<maint/devup.sh> will start the archlinux-image and mount the igor-folder into
 the container in read-only mode. There, new changes of igor can be tested.
 Instead of using carton, you can use the fatpacked script inside the container,
 which emulates the behaviour on typical hosts. (Yet, igor will prefer local
 modules from the F<lib/Igor> folder to those fatpacked: that way, changes
-can be tested without rerunning F<bin/fatpack.sh>).
+can be tested without rerunning F<maint/fatpack.sh>).
 
 	# On host
 	# Build/Prepare
-	./bin/builddocker.pl # just once
-	./bin/fatpack.sh     # just once
+	./maint/builddocker.pl # just once
+	./maint/fatpack.sh     # just once
 	# Start the container
-	./bin/devup.sh
+	./maint/devup.sh
 
 	# In the container
 	./igor.packed.pl --help
 
+=head1 AUTHOR
+
+Simon Schuster C<perl -e 'print "git . remove stuff like this . rationality.eu" =~ s/ . remove stuff like this . /@/rg'>
+
+=head1 COPYRIGHT
+
+Copyright 2019- Simon Schuster
+
+=head1 LICENSE
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+=cut

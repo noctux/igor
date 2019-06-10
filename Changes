@@ -1,0 +1,8 @@
+Revision history for App-Igor
+
+{{$NEXT}}
+		- First CPAN release
+        - Do not touch encoding of files processed
+
+0.1.0
+        - Initial release
