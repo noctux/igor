@@ -705,9 +705,9 @@ page or build it yourself:
         # Install all dependencies locally to ./local using carton
         # See DEVELOPMENT SETUP below for details
         carton install
-        ./bin/fatpack.sh
+        ./maint/fatpack.sh
 
-The fatpacked script can be found in `./bin/igor.fatpacked.pl` and be executed
+The fatpacked script can be found in `./igor.fatpacked.pl` and be executed
 standalone.
 
 ## HACKING
@@ -800,22 +800,22 @@ machine or container.
 
 To ease development, two scripts are provided to create and manage docker
 containers for igor development.
-`bin/builddocker.pl` will generate a set of dockerfiles in the folder
+`maint/builddocker.pl` will generate a set of dockerfiles in the folder
 `./docker` for minimal configurations of various operating systems configured
-in `bin/builddocker.pl` and builds the corresponding images.
-`bin/devup.sh` will start the archlinux-image and mount the igor-folder into
+in `maint/builddocker.pl` and builds the corresponding images.
+`maint/devup.sh` will start the archlinux-image and mount the igor-folder into
 the container in read-only mode. There, new changes of igor can be tested.
 Instead of using carton, you can use the fatpacked script inside the container,
 which emulates the behaviour on typical hosts. (Yet, igor will prefer local
 modules from the `lib/Igor` folder to those fatpacked: that way, changes
-can be tested without rerunning `bin/fatpack.sh`).
+can be tested without rerunning `maint/fatpack.sh`).
 
         # On host
         # Build/Prepare
-        ./bin/builddocker.pl # just once
-        ./bin/fatpack.sh     # just once
+        ./maint/builddocker.pl # just once
+        ./maint/fatpack.sh     # just once
         # Start the container
-        ./bin/devup.sh
+        ./maint/devup.sh
 
         # In the container
         ./igor.packed.pl --help
