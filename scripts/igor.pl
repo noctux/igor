@@ -292,7 +292,7 @@ Please see the L<section TOML|/TOML> for a full description of the individual
 fields.
 
 The TOML-style package description is the preferred way of package description.
-However, in some cases, a more programmatic way of specifiying package-contents
+However, in some cases, a more programmatic way of specifying package-contents
 might be desired: For instance by omitting certain files or by automatically
 generating a large number of file operations to cope with hundreds of
 individual files inside a package.
@@ -445,8 +445,8 @@ C<mergeconfigs>, see below.
 =head3 Cascade
 
 However, igor does not confine itself to merely defining individual
-configurations.  Instead, at the core of igor is a cascading configuration
-system: The basic idea is that each system's configuration actually consits of
+configurations. Instead, at the core of igor is a cascading configuration
+system: The basic idea is that each system's configuration actually consists of
 several aspects.
 
 For instance, all configurations share a common set of default values and basic
@@ -501,7 +501,7 @@ inside the configuration block in F<config.toml>.
 
 Igor merges the set of (transitively) active configurations from top to bottom:
 
-	defaults -> cfg2 -> cfg3 -> cfg5 -> cfg5
+	defaults -> cfg2 -> cfg3 -> cfg5 -> cfg6
 
 Therefore, the above results in the following effective configuration:
 
