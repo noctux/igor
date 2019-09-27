@@ -231,6 +231,7 @@ sub main {
 
 		# Run the factors defined in the configuration
 		push @transactions, @{$config->build_factor_transactions($effective_configuration->{factors})};
+		push @transactions, @{$config->build_vault_transactions($effective_configuration->{vaults}, $effective_configuration->{merger}, $effective_configuration->{cachedirectory})};
 
 		# Make sure they are ordered correctly:
 		@transactions = sort {$a->order cmp $b->order} @transactions;

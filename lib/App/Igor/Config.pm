@@ -18,7 +18,7 @@ use List::Util qw(reduce);
 use Log::ger;
 use Path::Tiny;
 use Try::Tiny;
-use Types::Standard qw(Any ArrayRef Dict HashRef Map Optional Str);
+use Types::Standard qw(Any ArrayRef Bool Dict HashRef Map Optional Str);
 use Storable qw(dclone);
 
 # Config file Schemata for TOML validation
@@ -35,17 +35,25 @@ my $factorschema = Dict [
 	path => Str,
 	type => Optional[Str],
 ];
+my $vaultschema = Dict [
+	path      => Str,
+	command   => Str,
+	cacheable => Optional[Bool],
+	type      => Optional[Str],
+];
 my $mergers = Map[Str, Str];
 my $configurationschema = Dict[
-	mergers      => Optional[$mergers],
-	mergeconfig  => Optional[HashRef],
-	dependencies => Optional[ArrayRef[Str]],
-	packages     => Optional[ArrayRef[$packageschema]],
-	repositories => Optional[HashRef[$repositoryschema]],
-	facts        => Optional[Any],
-	factors      => Optional[ArrayRef[$factorschema]],
-	collections  => Optional[HashRef[$collectionschema]],
-	pattern      => Optional[Str],
+	mergers        => Optional[$mergers],
+	mergeconfig    => Optional[HashRef],
+	dependencies   => Optional[ArrayRef[Str]],
+	packages       => Optional[ArrayRef[$packageschema]],
+	repositories   => Optional[HashRef[$repositoryschema]],
+	facts          => Optional[Any],
+	factors        => Optional[ArrayRef[$factorschema]],
+	vaults         => Optional[ArrayRef[$vaultschema]],
+	collections    => Optional[HashRef[$collectionschema]],
+	pattern        => Optional[Str],
+	cachedirectory => Optional[Str],
 ];
 my $configschema = Dict[
 	defaults       => Optional[$configurationschema],
@@ -62,6 +70,9 @@ sub BUILD {
 		}
 	}
 
+	$args->{defaults} //= {};
+	$args->{defaults}->{cachedirectory} //= "./.cache";
+
 	# Build Path::Tiny objects
 	for my $cfg (values %{$args->{configurations}}, $args->{defaults}) {
 		$cfg //= {};
@@ -75,9 +86,17 @@ sub BUILD {
 			}
 			$path
 		};
+		if (exists $cfg->{cachedirectory}) {
+			$cfg->{cachedirectory} = $make_abs->($cfg->{cachedirectory});
+		}
 		for my $factor (@{$cfg->{factors}}) {
 			if (exists $factor->{path}) {
 				$factor->{path} = $make_abs->($factor->{path});
+			}
+		}
+		for my $vault (@{$cfg->{vaults}}) {
+			if (exists $vault->{path}) {
+				$vault->{path} = $make_abs->($vault->{path});
 			}
 		}
 		for my $repokey (keys %{$cfg->{repositories}}) {
@@ -163,6 +182,9 @@ sub determine_effective_configuration {
 	# Now merge the configurations, with entries of the later ones overlaying old values
 	my $effective = reduce { $merger->merge($a, $b) } @cfgs;
 	log_trace "Merged configuration: " . Dumper($effective);
+
+	# Store the merger within the effective configuration for later use
+	$effective->{merger} = $merger;
 
 	return $effective;
 }
@@ -351,6 +373,18 @@ sub build_factor_transactions {
 	my @transactions;
 	for my $factor (@$factors) {
 		push @transactions, App::Igor::Operation::RunFactor->new(%$factor, order => 1);
+	}
+
+	return \@transactions;
+}
+
+
+sub build_vault_transactions {
+	my ($self, $vaults, $merger, $cachedirectory) = @_;
+
+	my @transactions;
+	for my $vault (@$vaults) {
+		push @transactions, App::Igor::Operation::UnlockVault->new(%$vault, order => 1, merger => $merger, cachedirectory => $cachedirectory);
 	}
 
 	return \@transactions;

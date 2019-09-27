@@ -35,6 +35,15 @@ sub read_toml {
 	return $conf;
 }
 
+sub convert_toml {
+	my ($data) = @_;
+
+	state $parser = TOML::Parser->new(
+		inflate_boolean => sub { $_[0] eq 'true' ? \1 : \0 },
+	);
+	return from_toml($data);
+}
+
 sub build_graph {
 	my ($hash, $lambda_deps) = @_;
 
@@ -168,6 +177,23 @@ sub capture {
 	}
 
 	return $output;
+}
+
+
+sub execute {
+	my ($cmd) = @_;
+
+	log_debug "Executing command '$cmd'";
+	my $retval = system($cmd);
+	if ($retval == -1) {
+		die "Failed to execute command '$cmd': $!\n";
+	} elsif ($retval & 127) {
+		die "Command '$cmd' died with signal @{[($retval & 127)]}\n";
+	} elsif (($retval >> 8) != 0) {
+		die "Command '$cmd' failed: Factor exited with @{[$retval >> 8]}\n";
+	}
+
+	return $retval;
 }
 
 1;

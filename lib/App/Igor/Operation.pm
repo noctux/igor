@@ -138,6 +138,7 @@ sub prepare {
 	my $facts     = $ctx->{facts};
 	my $packages  = $ctx->{packages};
 	my $automatic = $ctx->{automatic};
+	my $secrets   = $ctx->{secrets};
 	my $srcfile   = $self->template;
 
 	die "Template $srcfile is not a regular file" unless -f $srcfile;
@@ -149,6 +150,7 @@ sub prepare {
 		facts     => $facts,
 		packages  => $packages,
 		automatic => $automatic,
+		secrets   => $secrets,
 	};
 
 	# Use stricts requires that we predeclare those variables
@@ -453,17 +455,14 @@ sub prepare {
 		$facts = $factor->();
 	} elsif ($self->type eq 'script') {
 		log_debug "Executing file '@{[$self->path]}' as script-factor";
-		local $TOML::PARSER = TOML::Parser->new(
-			inflate_boolean => sub { $_[0] eq 'true' ? \1 : \0 },
-		);
 		my $cmd = shell_quote($self->path);
 		my $output = App::Igor::Util::capture($cmd);
 
 		try {
-			$facts = from_toml($output);
+			$facts = App::Igor::Util::convert_toml($output);
 		} catch {
 			die "Factor '$cmd' failed: Invalid TOML produced:\n$_";
-		}
+		};
 	} else {
 		die "Unknown factor type: @{[$self->type]}";
 	}
@@ -486,6 +485,154 @@ sub apply {
 sub log {
 	my ($self) = @_;
 	log_info "Already executed factor '@{[$self->path]}' of type @{[$self->type]}";
+	1;
+}
+
+sub diff {
+	my ($self) = @_;
+	return '';
+}
+
+
+package App::Igor::Operation::UnlockVault;
+use strict;
+use warnings;
+
+use Class::Tiny qw(path command merger cachedirectory), {
+	type      => "shell",
+	cacheable => 0,
+};
+use parent 'App::Igor::Operation';
+
+use App::Igor::Merge;
+use Data::Dumper;
+use Digest::SHA;
+use Log::ger;
+use Path::Tiny;
+use String::ShellQuote;
+use TOML::Parser;
+use TOML;
+use Try::Tiny;
+
+sub checksum {
+	my ($filename) = @_;
+
+	my $sha256 = Digest::SHA->new(256);
+	try {
+		# Forcing stringification of $filename is imprtant here
+		# Might be a Path::Tiny object and Digest::SHA inspects reftypes
+		$sha256->addfile("$filename", "b");
+	} catch {
+		die "Failed to checksum vault '$filename': $_";
+	};
+
+	return $sha256->hexdigest();
+}
+
+sub decrypt {
+	my ($command, $file) = @_;
+
+	my $vault = shell_quote($file);
+	my $cmd   = "$command";
+	log_info "Unlocking vault file '$file' using command: $cmd";
+	$ENV{IGOR_VAULT} = $file;
+	my $outfile = File::Temp->new();
+	$ENV{IGOR_OUTFILE} = $outfile->filename;
+
+	try {
+		App::Igor::Util::execute($cmd);
+	} catch {
+		die "Failed to decrypt vault '$vault' using command '$cmd':\n$_";
+	};
+	my $output = path($outfile->filename)->slurp();
+
+	delete $ENV{IGOR_VAULT};
+	delete $ENV{IGOR_OUTFILE};
+
+	return $output;
+}
+
+# Cache logic. Cached, decoded vaults are stored in $cachedir and identified
+# by their sha256sum as a filename.
+sub cache_lookup {
+	my ($cachedir, $vaultfile) = @_;
+
+	my $digest = checksum($vaultfile->stringify);
+	my $cached = $cachedir->child($digest);
+	if ($cached->is_file) {
+		log_debug "Vault $vaultfile found in cache: $cached";
+		return $cached->slurp();
+	} else {
+		log_debug "Vault $vaultfile not found in cache: $cached does not exist";
+		return undef;
+	}
+}
+
+sub cache_store {
+	my ($cachedir, $vaultfile, $content) = @_;
+
+	my $digest = checksum($vaultfile->stringify);
+	# ensure the cachedirectory exists
+	$cachedir->mkpath;
+	my $cached = $cachedir->child($digest);
+
+	
+	# Create
+	$cached->touch;
+	# Cached files are most likely to be kept private
+	$cached->chmod(0700);
+	# actually write the data (spew will not work due to permissions
+	# ending up to be the umask)
+	$cached->append({truncate => 1}, $content);
+}
+
+sub retrieve {
+	my ($filepath, $command, $cacheable, $cachedir) = @_;
+	my $content = cache_lookup($cachedir, $filepath);
+	if (!defined $content) {
+		$content = decrypt($command, $filepath);
+		if ($cacheable) {
+			cache_store($cachedir, $filepath, $content);
+		}
+	}
+
+	return $content;
+}
+
+sub prepare {
+	my ($self, $ctx) = @_;
+
+	# Currently, we only support one type of vaults
+	die "Unsupported vault type '@{[$self->type]}" unless $self->type eq "shell";
+
+	my $data = retrieve($self->{path}, $self->command, $self->cacheable, $self->cachedirectory);
+
+	my $facts;
+	try {
+		$facts = App::Igor::Util::convert_toml($data);
+	} catch {
+		die "Unlocking vault '@{[$self->{path}]}' failed: Invalid TOML produced:\n$_";
+	};
+	log_trace "Retrieved vault '@{[$self->{path}]}':\n" . Dumper($facts);
+
+	# Use the HashMerger to merge the automatic variables
+	my $secrets     = $ctx->{secrets} // {};
+	my $merger      = $self->merger;
+	$ctx->{secrets} = $merger->merge($secrets, $facts);
+	1;
+}
+
+sub check   {
+	1;
+}
+
+sub apply {
+	1;
+}
+
+sub log {
+	my ($self) = @_;
+	log_info "Already unlocked vault '@{[$self->{path}]}'";
 	1;
 }
 
