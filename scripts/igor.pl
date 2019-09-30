@@ -394,6 +394,55 @@ In addition to explicitly specified facts, some facts (e.g. C<hostname> above)
 can be automatically gathered for all hosts using L<factors|/Custom factors>.
 Inside templates, those automatic facts are stored in the hash C<%automatic>.
 
+=item Vaults
+
+Sometimes, credentials are required within configuration files. While
+it may be unproblematic to have these stored in plaintext on certain
+boxes (e.g. my feedreader password on my private laptop), it is often
+not desireable to have them stored in the clear on all other
+(potentially less trusted) computers igor is run on. While this
+problem can be mitigated by using multiple
+L<repositories|/Repositories and Packages>, it is overkill for only
+this paticular item. Vaults offer a way to store facts in an
+encrypted fashion and decrypt then automatically when required.
+
+	[[configurations.computer.vaults]]
+	path      = './vaults/newsboat.gpg'
+	type      = 'shell'
+	cacheable = 1
+	command   = 'gpg --batch --yes -o "${IGOR_OUTFILE}" -d "${IGOR_VAULT}"'
+
+Each configuration can store a list of vaults that will automatically
+be unlocked when the configuration is activated on the host.
+
+A vault consists of a filepath to the vault and a type.  Currently,
+only the C<shell> type is implemented. It allows to run a provided
+C<command> to decrypt the vault. The commandline used may refer to two
+environment variables for the filepath to the vault file
+(C<$IGOR_VAULT>) and the output file (C<$IGOR_OUTFILE>).
+
+The vault itself should decrypt to a TOML-File containing the
+secrets. After decryption, the vault will be merged into the context
+and available to Perl-style packages and Templates as
+C<%secrets>.
+
+However, it is laborous to repeatedly enter the vault password for every
+igor run being performed. So igor can cache unlocked faults for you.
+the unlocked vaults are stored in C<defaults.cachedirectory> (defaulting
+to F<./.cache>):
+
+	[defaults]
+	cachedirectory = './.cache'
+
+B<IMPORTANT:> The cache is currently B<not> cleared by igor
+itself. Old unlocked vaultfile-states will be cached indefinitly.
+It is the responsiblity of the user to clean the cache (by deleting
+the files within the cache directory).
+
+Caching has to be manually activated for the individual vaults by
+setting C<cacheable> to C<1>. Setting it to C<0> (default) will
+disable caching.
+
 =item Collections
 
 Often, certain files store configuration that relates to different system
