@@ -2,7 +2,10 @@ Revision history for App-Igor
 
 {{$NEXT}}
 		- First CPAN release
-        - Do not touch encoding of files processed
+
+0.2.0
+		- Feature: Vaults were added to make storing passwords in repositories less awkward.
+        - Bugfix: Do not touch encoding of files processed
 
 0.1.0
         - Initial release
