@@ -150,6 +150,26 @@ sub traverse_nested_hash {
 	return \%result;
 }
 
+sub capture {
+	my ($cmd) = @_;
+
+	log_debug "Executing command '$cmd'";
+	my $output = `$cmd`;
+	if ($? == -1) {
+		die "Failed to execute command '$cmd': $!\n";
+	} elsif ($? & 127) {
+		die "Command '$cmd' died with signal @{[($? & 127)]}\n";
+	} elsif (($? >> 8) != 0) {
+		die "Command '$cmd' failed: Factor exited with @{[$? >> 8]}\n";
+	}
+
+	if (!defined($output)) {
+		die "Failed to capture output for command '$cmd'";
+	}
+
+	return $output;
+}
+
 1;
 
 __END__

@@ -457,23 +457,12 @@ sub prepare {
 			inflate_boolean => sub { $_[0] eq 'true' ? \1 : \0 },
 		);
 		my $cmd = shell_quote($self->path);
-		my $output = `$cmd`;
-		if ($? == -1) {
-			die "Failed to execute factor $cmd: $!\n";
-		} elsif ($? & 127) {
-			die "Factor '$cmd' died with signal @{[($? & 127)]}\n";
-		} elsif (($? >> 8) != 0) {
-			die "Factor '$cmd' failed: Factor exited with @{[$? >> 8]}\n";
-		}
-
-		if (!defined($output)) {
-			die "Failed to run factor command: '$cmd'";
-		}
+		my $output = App::Igor::Util::capture($cmd);
 
 		try {
 			$facts = from_toml($output);
 		} catch {
-			die "Factor '$cmd' failed: Invalid TOML produces:\n$_";
+			die "Factor '$cmd' failed: Invalid TOML produced:\n$_";
 		}
 	} else {
 		die "Unknown factor type: @{[$self->type]}";
