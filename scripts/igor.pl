@@ -404,7 +404,7 @@ not desireable to have them stored in the clear on all other
 problem can be mitigated by using multiple
 L<repositories|/Repositories and Packages>, it is overkill for only
 this paticular item. Vaults offer a way to store facts in an
-encrypted fashion and decrypt then automatically when required.
+encrypted fashion and decrypt them automatically when required.
 
 	[[configurations.computer.vaults]]
 	path      = './vaults/newsboat.gpg'
