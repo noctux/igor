@@ -248,7 +248,7 @@ Please see the [section TOML](#toml) for a full description of the individual
 fields.
 
 The TOML-style package description is the preferred way of package description.
-However, in some cases, a more programmatic way of specifiying package-contents
+However, in some cases, a more programmatic way of specifying package-contents
 might be desired: For instance by omitting certain files or by automatically
 generating a large number of file operations to cope with hundreds of
 individual files inside a package.
@@ -348,6 +348,55 @@ state.
     can be automatically gathered for all hosts using [factors](#custom-factors).
     Inside templates, those automatic facts are stored in the hash `%automatic`.
 
+- Vaults
+
+    Sometimes, credentials are required within configuration files. While
+    it may be unproblematic to have these stored in plaintext on certain
+    boxes (e.g. my feedreader password on my private laptop), it is often
+    not desireable to have them stored in the clear on all other
+    (potentially less trusted) computers igor is run on. While this
+    problem can be mitigated by using multiple
+    [repositories](#repositories-and-packages), it is overkill for only
+    this paticular item. Vaults offer a way to store facts in an
+    encrypted fashion and decrypt them automatically when required.
+
+            [[configurations.computer.vaults]]
+            path      = './vaults/newsboat.gpg'
+            type      = 'shell'
+            cacheable = 1
+            command   = 'gpg --batch --yes -o "${IGOR_OUTFILE}" -d "${IGOR_VAULT}"'
+
+    Each configuration can store a list of vaults that will automatically
+    be unlocked when the configuration is activated on the host.
+
+    A vault consists of a filepath to the vault and a type.  Currently,
+    only the `shell` type is implemented. It allows to run a provided
+    `command` to decrypt the vault. The commandline used may refer to two
+    environment variables for the filepath to the vault file
+    (`$IGOR_VAULT`) and the output file (`$IGOR_OUTFILE`).
+
+    The vault itself should decrypt to a TOML-File containing the
+    secrets. After decryption, the vault will be merged into the context
+    and available to Perl-style packages and Templates as
+    `%secrets`.
+
+    However, it is laborous to repeatedly enter the vault password for every
+    igor run being performed. So igor can cache unlocked faults for you.
+    the unlocked vaults are stored in `defaults.cachedirectory` (defaulting
+    to `./.cache`):
+
+            [defaults]
+            cachedirectory = './.cache'
+
+    **IMPORTANT:** The cache is currently **not** cleared by igor
+    itself. Old unlocked vaultfile-states will be cached indefinitly.
+    It is the responsiblity of the user to clean the cache (by deleting
+    the files within the cache directory).
+
+    Caching has to be manually activated for the individual vaults by
+    setting `cacheable` to `1`. Setting it to `0` (default) will
+    disable caching.
+
 - Collections
 
     Often, certain files store configuration that relates to different system
@@ -397,8 +446,8 @@ state.
 ### Cascade
 
 However, igor does not confine itself to merely defining individual
-configurations.  Instead, at the core of igor is a cascading configuration
-system: The basic idea is that each system's configuration actually consits of
+configurations. Instead, at the core of igor is a cascading configuration
+system: The basic idea is that each system's configuration actually consists of
 several aspects.
 
 For instance, all configurations share a common set of default values and basic
@@ -453,7 +502,7 @@ inside the configuration block in `config.toml`.
 
 Igor merges the set of (transitively) active configurations from top to bottom:
 
-        defaults -> cfg2 -> cfg3 -> cfg5 -> cfg5
+        defaults -> cfg2 -> cfg3 -> cfg5 -> cfg6
 
 Therefore, the above results in the following effective configuration:
 
