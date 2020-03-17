@@ -19,7 +19,7 @@
 use warnings;
 use strict;
 
-use version; our $VERSION = version->declare("v0.2.0");
+use version; our $VERSION = version->declare("v0.2.1");
 
 use App::Igor::CLI;
 
