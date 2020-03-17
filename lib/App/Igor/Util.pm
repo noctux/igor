@@ -35,7 +35,7 @@ sub read_toml {
 	return $conf;
 }
 
-sub convert_toml {
+sub read_toml_str {
 	my ($data) = @_;
 
 	state $parser = TOML::Parser->new(

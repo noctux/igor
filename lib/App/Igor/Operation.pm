@@ -459,7 +459,7 @@ sub prepare {
 		my $output = App::Igor::Util::capture($cmd);
 
 		try {
-			$facts = App::Igor::Util::convert_toml($output);
+			$facts = App::Igor::Util::read_toml_str($output);
 		} catch {
 			die "Factor '$cmd' failed: Invalid TOML produced:\n$_";
 		};
@@ -609,7 +609,7 @@ sub prepare {
 
 	my $facts;
 	try {
-		$facts = App::Igor::Util::convert_toml($data);
+		$facts = App::Igor::Util::read_toml_str($data);
 	} catch {
 		die "Unlocking vault '@{[$self->{path}]}' failed: Invalid TOML produced:\n$_";
 	};
