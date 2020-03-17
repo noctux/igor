@@ -41,7 +41,13 @@ sub convert_toml {
 	state $parser = TOML::Parser->new(
 		inflate_boolean => sub { $_[0] eq 'true' ? \1 : \0 },
 	);
-	return from_toml($data);
+	my ($conv, $err) = $parser->parse($data);
+	unless ($conv) {
+		log_error "Parsing of toml data failed: $err";
+		die $err;
+	}
+
+	return $conv;
 }
 
 sub build_graph {
