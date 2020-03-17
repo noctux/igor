@@ -365,7 +365,7 @@ The above snippet configures igor to search for packages in two repositories loc
 at F<./repo1> and F<./repo2> I<relative to the configuration file> and installs three
 packages from those repositories.
 Repositories are named (C<repository1> and C<repository2>).
-The list of packages to be installed in specified in the C<packages> list.  By
+The list of packages to be installed is specified in the C<packages> list.  By
 default, igor tries to resolve packagenames in all configured repositories.
 However, in case the package name is ambiguous, an error will be reported and
 the execution is terminated. In that case, the packagename can be explicitly
@@ -746,7 +746,8 @@ unavailable.
 The C<configuration.pattern> options and configuration names are matched
 against this guessed identifier. If the selection is unique, this
 configuration will be automatically used and applied. If multiple patterns
-match, an error will be signaled instead.
+match, an error will be signaled instead. Patterns are matched as perl-style
+regexes.
 
 =head2 EXAMPLE
 
@@ -827,7 +828,7 @@ standalone.
 
 =head2 HACKING
 
-=head3 DESGIN/CODE STRUCTURE
+=head3 DESIGN/CODE STRUCTURE
 
 C<App::Igor::CLI::main> in F<lib/Igor/CLI.pl> constitutes igor's entrypoint and
 outlines the overall execution flow.
@@ -836,20 +837,15 @@ The main steps are:
 
 =over 4
 
-=item 1.
-Command line parsing and setup
+=item 1.  Command line parsing and setup
 
-=item 2.
-Parsing the config
+=item 2.  Parsing the config
 
-=item 3.
-Using the layering system to determine the config to apply
+=item 3.  Using the layering system to determine the config to apply
 
-=item 4.
-Building the package database and configuring the individual packages
+=item 4.  Building the package database and configuring the individual packages
 
-=item 5.
-Applying the relevant subcommand (eiter applying a configuration, diff, gc...)
+=item 5.  Applying the relevant subcommand (eiter applying a configuration, diff, gc...)
 
 =back
 
