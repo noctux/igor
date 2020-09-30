@@ -83,6 +83,9 @@ sub check {
 		} catch {
 			$changeneeded = 1;
 		};
+		if (-e $self->path && not S_ISREG($self->path->lstat->mode)) {
+			die ("File sink '@{[$self->path]}' for text output operation (e.g. template/copy/collection) already exists and is not a regular file");
+		}
 	} elsif ($type == App::Igor::Pipeline::Type::FILE) {
 		try {
 			$changeneeded = not (S_ISLNK($self->path->lstat->mode) && ($self->path->realpath eq $data->realpath));
