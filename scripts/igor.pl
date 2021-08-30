@@ -906,7 +906,7 @@ the required nonstandard libraries:
 
 Carton can then be used to execute C<igor> with those locally installed libs:
 
-	carton exec -- ./scripts/igor.pl --help
+	carton exec -- perl -Ilib ./scripts/igor.pl --help
 
 =head4 Running tests
 
