@@ -1,0 +1,19 @@
+name: Releases
+
+on: 
+  push:
+    tags:
+    - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: sudo apt-get install -y carton
+    - run: carton install
+    - run: ./maint/fatpack.sh
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: "igor.packed.pl"
+        token: ${{ secrets.GITHUB_TOKEN }}

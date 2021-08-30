@@ -31,6 +31,6 @@ find ./fatlib -type f -exec perlstrip --size {} \;
 # Pack the script
 fatpack file ./scripts/igor.pl > ./igor.packed.pl
 # Bugfix: common::sense is in ARCHLIB
-sed -i 's!x86_64-linux-thread-multi/!!g' ./igor.packed.pl
+sed -E -i 's!x86_64-linux-(gnu-)?thread-multi/!!g' ./igor.packed.pl
 
 chmod u+x ./igor.packed.pl
