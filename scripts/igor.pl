@@ -823,7 +823,7 @@ page or build it yourself:
 	carton install
 	./maint/fatpack.sh
 
-The fatpacked script can be found in F<./igor.fatpacked.pl> and be executed
+The fatpacked script can be found in F<./igor.packed.pl> and be executed
 standalone.
 
 =head2 HACKING
@@ -919,6 +919,7 @@ an integration test case.
 B<WARNING:> Running the following command on your development machine might
 overwrite configuration files on the host. Only execute them in a virtual
 machine or container.
+
 	./scripts/igor.pl apply -vv --dry-run -c ./test/test_minimal/config.toml --task computer
 
 To ease development, two scripts are provided to create and manage docker

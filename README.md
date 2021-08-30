@@ -319,7 +319,7 @@ state.
     at `./repo1` and `./repo2` _relative to the configuration file_ and installs three
     packages from those repositories.
     Repositories are named (`repository1` and `repository2`).
-    The list of packages to be installed in specified in the `packages` list.  By
+    The list of packages to be installed is specified in the `packages` list.  By
     default, igor tries to resolve packagenames in all configured repositories.
     However, in case the package name is ambiguous, an error will be reported and
     the execution is terminated. In that case, the packagename can be explicitly
@@ -683,7 +683,8 @@ unavailable.
 The `configuration.pattern` options and configuration names are matched
 against this guessed identifier. If the selection is unique, this
 configuration will be automatically used and applied. If multiple patterns
-match, an error will be signaled instead.
+match, an error will be signaled instead. Patterns are matched as perl-style
+regexes.
 
 ## EXAMPLE
 
@@ -756,28 +757,23 @@ page or build it yourself:
         carton install
         ./maint/fatpack.sh
 
-The fatpacked script can be found in `./igor.fatpacked.pl` and be executed
+The fatpacked script can be found in `./igor.packed.pl` and be executed
 standalone.
 
 ## HACKING
 
-### DESGIN/CODE STRUCTURE
+### DESIGN/CODE STRUCTURE
 
 `App::Igor::CLI::main` in `lib/Igor/CLI.pl` constitutes igor's entrypoint and
 outlines the overall execution flow.
 
 The main steps are:
 
-- 1.
-Command line parsing and setup
-- 2.
-Parsing the config
-- 3.
-Using the layering system to determine the config to apply
-- 4.
-Building the package database and configuring the individual packages
-- 5.
-Applying the relevant subcommand (eiter applying a configuration, diff, gc...)
+- 1.  Command line parsing and setup
+- 2.  Parsing the config
+- 3.  Using the layering system to determine the config to apply
+- 4.  Building the package database and configuring the individual packages
+- 5.  Applying the relevant subcommand (eiter applying a configuration, diff, gc...)
 
 The last step (5.) borrows a lot of its internal structure from the layout of
 compilers: Each package is deconstructed into a set of `transactions`. These
@@ -832,7 +828,7 @@ the required nonstandard libraries:
 
 Carton can then be used to execute `igor` with those locally installed libs:
 
-        carton exec -- ./scripts/igor.pl --help
+        carton exec -- perl -Ilib ./scripts/igor.pl --help
 
 #### Running tests
 
@@ -845,7 +841,8 @@ an integration test case.
 **WARNING:** Running the following command on your development machine might
 overwrite configuration files on the host. Only execute them in a virtual
 machine or container.
-	./scripts/igor.pl apply -vv --dry-run -c ./test/test\_minimal/config.toml --task computer
+
+        ./scripts/igor.pl apply -vv --dry-run -c ./test/test_minimal/config.toml --task computer
 
 To ease development, two scripts are provided to create and manage docker
 containers for igor development.
