@@ -284,6 +284,9 @@ the default users shell. Alternatively, the hooks can be specified as an array
 of strings. In that case, the systems shell is bypassed and the command will be
 invoked directly using exec, bypassing the system shell.
 
+B<Note>: Due to TOMLs parsing, be sure to add those hook arrays at the top of your
+C<package.toml>, before any eventual C<[[files|templates]]> tables.
+
 =back
 
 =head4 Perl-style package description
