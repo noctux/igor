@@ -103,7 +103,7 @@ Show obsolete files
 
 =head2 FUNDAMENTALS
 
-Igors approach to dotfile management mirrors the concept of traditional package
+Igor's approach to dotfile management mirrors the concept of traditional package
 management. Therefore, instead of delivering all dotfiles at once, files are
 grouped into L<packages|/PACKAGES> which can be enabled for individual hosts
 selectively.
@@ -117,7 +117,7 @@ allow igor to customize the packages and their templates before deployment.
 Igor manages individual configuration files as packages. Each package comprises
 a set of files relating to a specific task or aspect of the system.  Often,
 this will coincide with a program (e.g.: the C<zsh> package might contain
-F<.zprofile>, F<.zshrc> and F<.zshenv>), while the can also relate to
+F<.zprofile>, F<.zshrc> and F<.zshenv>), while they can also relate to
 functionality (e.g.: C<mail> comprising a F<.muttrc>, F<.mbsyncrc> and
 F<.msmtprc>).
 
