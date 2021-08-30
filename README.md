@@ -63,7 +63,7 @@ Show obsolete files
 
 ## FUNDAMENTALS
 
-Igors approach to dotfile management mirrors the concept of traditional package
+Igor's approach to dotfile management mirrors the concept of traditional package
 management. Therefore, instead of delivering all dotfiles at once, files are
 grouped into [packages](#packages) which can be enabled for individual hosts
 selectively.
@@ -77,7 +77,7 @@ allow igor to customize the packages and their templates before deployment.
 Igor manages individual configuration files as packages. Each package comprises
 a set of files relating to a specific task or aspect of the system.  Often,
 this will coincide with a program (e.g.: the `zsh` package might contain
-`.zprofile`, `.zshrc` and `.zshenv`), while the can also relate to
+`.zprofile`, `.zshrc` and `.zshenv`), while they can also relate to
 functionality (e.g.: `mail` comprising a `.muttrc`, `.mbsyncrc` and
 `.msmtprc`).
 
@@ -241,6 +241,9 @@ Each package consists of four components:
     the default users shell. Alternatively, the hooks can be specified as an array
     of strings. In that case, the systems shell is bypassed and the command will be
     invoked directly using exec, bypassing the system shell.
+
+    **Note**: Due to TOMLs parsing, be sure to add those hook arrays at the top of your
+    `package.toml`, before any eventual `[[files|templates]]` tables.
 
 #### Perl-style package description
 
