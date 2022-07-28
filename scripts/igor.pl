@@ -327,7 +327,7 @@ L<TOML|/TOML> components, for example:
 
 =head2 CONFIGURATION
 
-A configurations specifies which packages to install and defines parameters for
+A configuration specifies which packages to install and defines parameters for
 the current deployment.
 The configuration is expressed in a L<TOML|https://github.com/toml-lang/toml>
 configuration file.
@@ -430,7 +430,7 @@ and available to Perl-style packages and Templates as
 C<%secrets>.
 
 However, it is laborous to repeatedly enter the vault password for every
-igor run being performed. So igor can cache unlocked faults for you.
+igor run being performed. So igor can cache unlocked vaults for you.
 the unlocked vaults are stored in C<defaults.cachedirectory> (defaulting
 to F<./.cache>):
 
